@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<block>
+  <name>antenna_phase_shifter</name>
+  <key>inets_antenna_phase_shifter</key>
+  <category>inets</category>
+  <import>import inets</import>
+  <make>inets.antenna_phase_shifter($develop_mode, $block_id, $noutput, $phase_shift)</make>
+  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
+       Sub-nodes:
+       * name
+       * key (makes the value accessible as $keyname, e.g. in the make node)
+       * type -->
+       <param>
+         <name>Develop mode</name>
+         <key>develop_mode</key>
+         <value>develop_mode</value>
+         <type>int</type>
+         <option>
+           <name>on</name>
+           <key>1</key>
+         </option>
+         <option>
+           <name>off</name>
+           <key>0</key>
+         </option>
+       </param>
+       <param>
+         <name>Block ID</name>
+         <key>block_id</key>
+         <value>4</value>
+         <type>int</type>
+       </param>
+       <param>
+         <name>Phase Shift in Radians</name>
+         <key>phase_shift</key>
+         <value>0.78539816339</value>
+         <type>float</type>
+         </param>
+       <param>
+         <name>Number of Antennas on the array</name>
+         <key>noutput</key>
+         <value>4</value>
+         <type>int</type>
+       </param>
+
+       <!-- Make one 'sink' node per input. Sub-nodes:
+            * name (an identifier for the GUI)
+            * type
+            * vlen
+            * optional (set to 1 for optional inputs) -->
+            <sink>
+              <name>in</name>
+              <type>complex</type>
+            </sink>
+
+            <!-- Make one 'source' node per output. Sub-nodes:
+                 * name (an identifier for the GUI)
+                 * type
+                 * vlen
+                 * optional (set to 1 for optional inputs) -->
+            <source>
+              <name>out0</name>
+              <type>complex</type>
+            </source>
+            <source>
+              <name>out1</name>
+              <type>complex</type>
+              <optional>1</optional>
+            </source>
+            <source>
+              <name>out2</name>
+              <type>complex</type>
+              <optional>1</optional>
+            </source>
+            <source>
+              <name>out3</name>
+              <type>complex</type>
+              <optional>1</optional>
+            </source>
+          </block>
