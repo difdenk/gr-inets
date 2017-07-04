@@ -4,7 +4,7 @@
 # GNU Radio Python Flow Graph
 # Title: Test_framing_Cogmac
 # Author: PWA
-# Generated: Fri Apr 14 22:23:54 2017
+# Generated: Tue Jul  4 11:03:00 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -79,9 +79,9 @@ class Test_framing_Cogmac(gr.top_block, Qt.QWidget):
         ##################################################
         # Blocks
         ##################################################
-        self.inets_framing_0 = inets.framing(0, 17, 1, 1, frame_index, 1, destination_address, 1, source_address, 1, 318, 2, 524, 2, 2, 1, 1, 567, ([2, 3]), ([1000, 1000]), 2)
-        self.inets_frame_probe_0_0 = inets.frame_probe(1, 100, 0, 0, 0.01)
-        self.inets_frame_probe_0 = inets.frame_probe(1, 101, 0, 0, 0.01)
+        self.inets_framing_0 = inets.framing(0, 17, 1, 1, frame_index, 1, destination_address, 1, source_address, 1, 318, 2, 524, 2, 2, 1, 1, 567, ([2, 3]), ([1000, 1000]), 2, 0, 300, 1)
+        self.inets_frame_probe_0_0 = inets.frame_probe(1, 100, 0, 0, 0.01, 0, "/home/inets/source/gr-inets/results/", "", 1)
+        self.inets_frame_probe_0 = inets.frame_probe(1, 101, 0, 0, 0.01, 0, "/home/inets/source/gr-inets/results/", "", 1)
         self.inets_frame_index_selector_0 = inets.frame_index_selector(0, 41, ([2, 4, 5]), 0)
         self.inets_dummy_source_0 = inets.dummy_source(0, 23, 100, 1, 1)
         self.blocks_message_strobe_0 = blocks.message_strobe(pmt.intern("TEST"), 1000)
