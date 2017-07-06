@@ -29,29 +29,39 @@
 #include <iostream>
 #include <cmath>
 #include <complex>
+#include <uhd/types/time_spec.hpp>
+#include <sys/time.h>
+#include <ctime>
+#include <fstream>
 
 
 namespace gr {
   namespace inets {
 
     antenna_array_controller::sptr
-    antenna_array_controller::make(int develop_mode, int block_id, int noutput, double phase_shift)
+    antenna_array_controller::make(int develop_mode, int block_id, int noutput, double phase_shift, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp)
     {
       return gnuradio::get_initial_sptr
-        (new antenna_array_controller_impl(develop_mode, block_id, noutput, phase_shift));
+        (new antenna_array_controller_impl(develop_mode, block_id, noutput, phase_shift, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp));
     }
 
     /*
      * The private constructor
      */
-    antenna_array_controller_impl::antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift)
+    antenna_array_controller_impl::antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp)
       : gr::sync_interpolator("antenna_array_controller",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(noutput, noutput, sizeof(gr_complex)), 4),
               _develop_mode(develop_mode),
               _block_id(block_id),
               _noutput(noutput),
-              _phase_shift(phase_shift)
+              _phase_shift(phase_shift),
+              _last_tx_time(0),
+              _t_pretx_interval_s(t_pretx_interval_s),
+              _file_name_extension(file_name_extension),
+              _name_with_timestamp(name_with_timestamp),
+              _record_on(record_on),
+              _bps(bps)
 
     {
       if(_develop_mode)
@@ -129,6 +139,31 @@ namespace gr {
         add_item_tag(2, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
         add_item_tag(3, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
       }
+      static const pmt::pmt_t time_key = pmt::string_to_symbol("tx_time");
+      // Get the time
+      struct timeval t;
+      gettimeofday(&t, NULL);
+      double tx_time = t.tv_sec + t.tv_usec / 1000000.0;
+      double min_time_diff = pmt::to_double(_packet_len_tag.value) / _bps; //Max packet len [bit] / bit rate
+      // double min_time_diff = (1000 * 8.0) / _bps; //Max packet len [bit] / bit rate
+      // Ensure that frames are not overlap each other
+//        if((tx_time - _last_tx_time) < (min_time_diff + _t_pretx_interval_s)) {
+//          tx_time = _last_tx_time + min_time_diff;
+//          if(_develop_mode)
+//            std::cout << "t_control ID " << _block_id << " in time packet" << std::endl;
+//        }
+      //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
+      // update the tx_time to the current packet
+      _last_tx_time = tx_time;
+      // question 1: why add 0.05?
+      uhd::time_spec_t now = uhd::time_spec_t(tx_time) + uhd::time_spec_t(_t_pretx_interval_s);
+      // the value of the tag is a tuple
+      const pmt::pmt_t time_value = pmt::make_tuple(
+        pmt::from_uint64(now.get_full_secs()),
+        pmt::from_double(now.get_frac_secs())
+      );
+
+      add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
 
       if (_develop_mode) {
         if (!tags_in.empty()) {

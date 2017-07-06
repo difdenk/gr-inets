@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2017 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -46,11 +46,10 @@ namespace gr {
        * class. inets::antenna_array_controller::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int develop_mode, int block_id, int noutput, double phase_shift);
+      static sptr make(int develop_mode, int block_id, int noutput, double phase_shift, double bps, double t_pretx_interval_s, int record_on, std::string fime_name_extension, int name_with_timestamp);
     };
 
   } // namespace inets
 } // namespace gr
 
 #endif /* INCLUDED_INETS_ANTENNA_ARRAY_CONTROLLER_H */
-
