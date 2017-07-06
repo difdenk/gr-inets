@@ -99,5 +99,6 @@ install(FILES
     inets_cmd_switch.xml
     inets_cmd_port_control.xml
     inets_parameter_list.xml
-    inets_antenna_array_controller.xml DESTINATION share/gnuradio/grc/blocks
+    inets_antenna_array_controller.xml
+    inets_mux.xml DESTINATION share/gnuradio/grc/blocks
 )

@@ -120,21 +120,25 @@ namespace gr {
           //std::cout << "out3 = " << *out3 << std::endl;
         }
       }
+      //set_tag_propagation_policy(TPP_DONT);
       std::vector<tag_t> tags_in;
-      get_tags_in_range(tags_in, 0, nitems_read(0), nitems_read(0) + noutput_items);
+      get_tags_in_range(tags_in, 0, nitems_read(0), nitems_read(0) + noutput_items, pmt::string_to_symbol("packet_len"));
+      for (int i = 0; i < tags_in.size(); i++) {
+        add_item_tag(0, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
+        add_item_tag(1, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
+        add_item_tag(2, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
+        add_item_tag(3, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
+      }
 
       if (_develop_mode) {
         if (!tags_in.empty()) {
-          std::cout << "There are Tags on the stream !" << '\n';
-          /*for (int i = 0; i < tags_in.size(); i++) {
-            std::cout << "The tags on the Input Port" << '\n';
-            std::cout << "Index of tags: " << i << std::endl;
-            std::cout << "Offset: " << tags_in[i].offset << std::endl;
-            std::cout << "Key: " << tags_in[i].key << std::endl;
-            std::cout << "Value: " << tags_in[i].value << std::endl;
-            std::cout << "Srcid: " << tags_in[i].srcid << std::endl;
-            std::cout << '\n';
-          }*/
+          std::cout << "There are " << tags_in.size() << " Tags on the stream !" << '\n';
+          std::cout << "The tags on the Input Port" << '\n';
+          std::cout << "Offset: " << tags_in[0].offset << std::endl;
+          std::cout << "Key: " << tags_in[0].key << std::endl;
+          std::cout << "Value: " << tags_in[0].value << std::endl;
+          std::cout << "Srcid: " << tags_in[0].srcid << std::endl;
+          std::cout << '\n';
         } else {
           std::cout << "There are NO Tags on the stream !" << '\n';
         }

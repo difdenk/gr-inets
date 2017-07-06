@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<block>
+  <name>mux</name>
+  <key>inets_mux</key>
+  <category>[inets]</category>
+  <import>import inets</import>
+  <make>inets.mux()</make>
+
+  <sink>
+    <name>in</name>
+    <type>complex</type>
+  </sink>
+
+  <!-- Make one 'source' node per output. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <source>
+    <name>out0</name>
+    <type>complex</type>
+  </source>
+  <source>
+    <name>out1</name>
+    <type>complex</type>
+  </source>
+  <source>
+    <name>out2</name>
+    <type>complex</type>
+  </source>
+  <source>
+    <name>out3</name>
+    <type>complex</type>
+  </source>
+</block>
