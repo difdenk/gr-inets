@@ -46,7 +46,7 @@ namespace gr {
        * class. inets::antenna_array_controller::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int develop_mode, int block_id, int noutput, double phase_shift, double bps, double t_pretx_interval_s, int record_on, std::string fime_name_extension, int name_with_timestamp);
+      static sptr make(int develop_mode, int block_id, int noutput, double phase_shift);
     };
 
   } // namespace inets
