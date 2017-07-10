@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_INETS_ANTENNA_ARRAY_CONTROLLER_IMPL_H
-#define INCLUDED_INETS_ANTENNA_ARRAY_CONTROLLER_IMPL_H
+#ifndef INCLUDED_INETS_antenna_array_controller_IMPL_H
+#define INCLUDED_INETS_antenna_array_controller_IMPL_H
 
 #include <inets/antenna_array_controller.h>
 
@@ -36,6 +36,7 @@ namespace gr {
       tag_t _packet_len_tag;
       int _count;
 
+
      public:
       antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift);
       ~antenna_array_controller_impl();
@@ -51,4 +52,4 @@ namespace gr {
   } // namespace inets
 } // namespace gr
 
-#endif /* INCLUDED_INETS_ANTENNA_ARRAY_CONTROLLER_IMPL_H */
+#endif /* INCLUDED_INETS_antenna_array_controller_IMPL_H */

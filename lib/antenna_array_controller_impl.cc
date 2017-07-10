@@ -57,7 +57,7 @@ namespace gr {
               _count(1)
     {
       if(_develop_mode)
-      std::cout << "develop mode of antenna_array_controller ID: " << _block_id << "is activated" << std::endl;
+      std::cout << "develop mode of array_phase_controller ID: " << _block_id << "is activated" << std::endl;
     }
 
     /*
@@ -67,7 +67,7 @@ namespace gr {
     {
     }
 
-    int antenna_array_controller::work(int noutput_items,
+    int antenna_array_controller_impl::work(int noutput_items,
         gr_vector_const_void_star &input_items,
         gr_vector_void_star &output_items)
     {
