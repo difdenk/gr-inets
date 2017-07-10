@@ -32,23 +32,21 @@
 #include <uhd/types/time_spec.hpp>
 #include <sys/time.h>
 #include <ctime>
-#include <fstream>
-
 
 namespace gr {
   namespace inets {
 
     antenna_array_controller::sptr
-    antenna_array_controller::make(int develop_mode, int block_id, int noutput, double phase_shift, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp)
+    antenna_array_controller::make(int develop_mode, int block_id, int noutput, double phase_shift)
     {
       return gnuradio::get_initial_sptr
-        (new antenna_array_controller_impl(develop_mode, block_id, noutput, phase_shift, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp));
+        (new antenna_array_controller_impl(develop_mode, block_id, noutput, phase_shift));
     }
 
     /*
      * The private constructor
      */
-    antenna_array_controller_impl::antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp)
+    antenna_array_controller_impl::antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift)
       : gr::sync_interpolator("antenna_array_controller",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(noutput, noutput, sizeof(gr_complex)), 4),
@@ -56,16 +54,10 @@ namespace gr {
               _block_id(block_id),
               _noutput(noutput),
               _phase_shift(phase_shift),
-              _last_tx_time(0),
-              _t_pretx_interval_s(t_pretx_interval_s),
-              _file_name_extension(file_name_extension),
-              _name_with_timestamp(name_with_timestamp),
-              _record_on(record_on),
-              _bps(bps)
-
+              _count(1)
     {
       if(_develop_mode)
-      std::cout << "Develop mode is activated" << '\n';
+      std::cout << "develop mode of antenna_array_controller ID: " << _block_id << "is activated" << std::endl;
     }
 
     /*
@@ -75,14 +67,7 @@ namespace gr {
     {
     }
 
-    void antenna_array_controller_impl::shift_the_phase(gr_complex &temp){
-      double magn = abs(temp);
-      double shifted_arg = arg(temp) + _phase_shift;
-      temp = std::polar(magn, shifted_arg);
-    }
-
-    int
-    antenna_array_controller_impl::work(int noutput_items,
+    int antenna_array_controller::work(int noutput_items,
         gr_vector_const_void_star &input_items,
         gr_vector_void_star &output_items)
     {
@@ -91,6 +76,12 @@ namespace gr {
       gr_complex *out1 = (gr_complex*) output_items[1];
       gr_complex *out2 = (gr_complex*) output_items[2];
       gr_complex *out3 = (gr_complex*) output_items[3];
+      std::vector<tag_t> tags_in;
+      get_tags_in_range(tags_in, 0, nitems_read(0), nitems_read(0) + noutput_items, pmt::string_to_symbol("packet_len"));
+      //set_tag_propagation_policy(TPP_DONT);
+      std::cout << "tags_in.size: "<< tags_in.size() << '\n';
+      std::cout << "number of times work function is called: "<< antenna_array_controller_impl::_count << '\n';
+      antenna_array_controller_impl::_count++;
 
       // Do <+signal processing+>
       //Shift the phases of the signal for each port seperately
@@ -98,6 +89,7 @@ namespace gr {
         out0[i] = in[i];
         if(_develop_mode){
           //std::cout << "out0 = " << *out0 << std::endl;
+          //std::cout << "number of noutput_items" << noutput_items << '\n';
         }
       }
       for (int i=0 ; i < noutput_items ; i++){
@@ -130,56 +122,60 @@ namespace gr {
           //std::cout << "out3 = " << *out3 << std::endl;
         }
       }
-      //set_tag_propagation_policy(TPP_DONT);
-      std::vector<tag_t> tags_in;
-      get_tags_in_range(tags_in, 0, nitems_read(0), nitems_read(0) + noutput_items, pmt::string_to_symbol("packet_len"));
-      for (int i = 0; i < tags_in.size(); i++) {
-        add_item_tag(0, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
-        add_item_tag(1, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
-        add_item_tag(2, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
-        add_item_tag(3, tags_in[i].offset, tags_in[i].key, tags_in[i].value);
+      std::cout << "after sp" << '\n';
+      if(prepare_output_tag(tags_in)){
+        static const pmt::pmt_t time_key = pmt::string_to_symbol("tx_time");
+        // Get the time
+        struct timeval t;
+        gettimeofday(&t, NULL);
+        double tx_time = t.tv_sec + t.tv_usec / 1000000.0;
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time);
+        // the value of the tag is a tuple
+        const pmt::pmt_t time_value = pmt::make_tuple(
+          pmt::from_uint64(now.get_full_secs()),
+          pmt::from_double(now.get_frac_secs())
+        );
+
+        add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
+        add_item_tag(1, _packet_len_tag.offset, time_key, time_value);
+        add_item_tag(2, _packet_len_tag.offset, time_key, time_value);
+        add_item_tag(3, _packet_len_tag.offset, time_key, time_value);
+        //add_item_tag(0, _count*1000, pmt::string_to_symbol("deneme_key"), pmt::string_to_symbol("deneme_value"));
+        //////For Debugging Purposes
+        std::cout << "inside the function" << '\n';
+        //std::cout << _packet_len_tag.key << '\n';
+        std::cout << "packet_len value : " << _packet_len_tag.value << '\n';
+        std::cout << "packet_len offset : " << _packet_len_tag.offset << '\n';
+        /////
       }
-      static const pmt::pmt_t time_key = pmt::string_to_symbol("tx_time");
-      // Get the time
-      struct timeval t;
-      gettimeofday(&t, NULL);
-      double tx_time = t.tv_sec + t.tv_usec / 1000000.0;
-      double min_time_diff = pmt::to_double(_packet_len_tag.value) / _bps; //Max packet len [bit] / bit rate
-      // double min_time_diff = (1000 * 8.0) / _bps; //Max packet len [bit] / bit rate
-      // Ensure that frames are not overlap each other
-//        if((tx_time - _last_tx_time) < (min_time_diff + _t_pretx_interval_s)) {
-//          tx_time = _last_tx_time + min_time_diff;
-//          if(_develop_mode)
-//            std::cout << "t_control ID " << _block_id << " in time packet" << std::endl;
-//        }
-      //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
-      // update the tx_time to the current packet
-      _last_tx_time = tx_time;
-      // question 1: why add 0.05?
-      uhd::time_spec_t now = uhd::time_spec_t(tx_time) + uhd::time_spec_t(_t_pretx_interval_s);
-      // the value of the tag is a tuple
-      const pmt::pmt_t time_value = pmt::make_tuple(
-        pmt::from_uint64(now.get_full_secs()),
-        pmt::from_double(now.get_frac_secs())
-      );
 
-      add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
-
-      if (_develop_mode) {
-        if (!tags_in.empty()) {
-          std::cout << "There are " << tags_in.size() << " Tags on the stream !" << '\n';
-          std::cout << "The tags on the Input Port" << '\n';
-          std::cout << "Offset: " << tags_in[0].offset << std::endl;
-          std::cout << "Key: " << tags_in[0].key << std::endl;
-          std::cout << "Value: " << tags_in[0].value << std::endl;
-          std::cout << "Srcid: " << tags_in[0].srcid << std::endl;
-          std::cout << '\n';
-        } else {
-          std::cout << "There are NO Tags on the stream !" << '\n';
+      /*if (_develop_mode) {
+        if(!tags_in.empty()){
+          std::cout << "There are tags on the stream !" << '\n';
         }
-      }
+        else
+        std::cout << "There are NO tags on this stream !" << '\n';
+      }*/
+
       // Tell runtime system how many output items we produced.
       return noutput_items;
+    }
+    void antenna_array_controller_impl::shift_the_phase(gr_complex &temp){
+      double magn = abs(temp);
+      double shifted_arg = arg(temp) + _phase_shift;
+      temp = std::polar(magn, shifted_arg);
+    }
+    int antenna_array_controller_impl::prepare_output_tag(std::vector<tag_t> &tags_in){
+      int tag_detected = 0;
+      for (int i = 0; i < tags_in.size(); i++) {
+        if (pmt::symbol_to_string(tags_in[i].key) == "packet_len" ) {
+          _packet_len_tag = tags_in[i];
+          tag_detected = 1;
+          break;
+        }
+
+        return tag_detected;
+      }
     }
 
   } /* namespace inets */
