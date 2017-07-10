@@ -33,19 +33,14 @@ namespace gr {
       int _block_id;
       int _noutput;
       double _phase_shift;
-      int _record_on;
-      std::string _file_name_str;
-      std::string _file_name_extension;
-      int _name_with_timestamp;
-      double _last_tx_time;
-      double _bps;
-      double _t_pretx_interval_s;
       tag_t _packet_len_tag;
+      int _count;
 
      public:
-      antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift, double bps, double t_pretx_interval_s, int record_on, std::string fime_name_extension, int name_with_timestamp);
+      antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift);
       ~antenna_array_controller_impl();
       void shift_the_phase(gr_complex &temp);
+      int prepare_output_tag(std::vector<tag_t> &tags_in);
 
       // Where all the action really happens
       int work(int noutput_items,
