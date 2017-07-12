@@ -136,10 +136,14 @@ namespace gr {
           pmt::from_double(now.get_frac_secs())
         );
 
-        add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
-        add_item_tag(1, _packet_len_tag.offset, time_key, time_value);
-        add_item_tag(2, _packet_len_tag.offset, time_key, time_value);
-        add_item_tag(3, _packet_len_tag.offset, time_key, time_value);
+        add_item_tag(0, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(1, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(2, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(3, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(0, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(1, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(2, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(3, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
         //add_item_tag(0, _count*1000, pmt::string_to_symbol("deneme_key"), pmt::string_to_symbol("deneme_value"));
         //////For Debugging Purposes
         std::cout << "inside the function" << '\n';
@@ -171,6 +175,7 @@ namespace gr {
         if (pmt::symbol_to_string(tags_in[i].key) == "packet_len" ) {
           _packet_len_tag = tags_in[i];
           tag_detected = 1;
+          std::cout << "found packet len tag" << std::endl;
           break;
         }
 

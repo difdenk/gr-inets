@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -35,16 +35,16 @@ namespace gr {
   namespace inets {
 
     t_control_tx_cc::sptr
-    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp)
+    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number)
     {
       return gnuradio::get_initial_sptr
-        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp));
+        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp, antenna_number));
     }
 
     /*
      * The private constructor
      */
-    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp)
+    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number)
       : gr::block("t_control_tx_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
@@ -55,7 +55,9 @@ namespace gr {
         _file_name_extension(file_name_extension),
         _name_with_timestamp(name_with_timestamp),
         _record_on(record_on),
-        _bps(bps)
+        _phase(0),
+        _bps(bps),
+        _antenna_number(antenna_number)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -70,6 +72,13 @@ namespace gr {
           file_name << "/home/inets/source/gr-inets/results/" << _file_name_extension << ".txt";
         _file_name_str = file_name.str();
       }
+      message_port_register_in(pmt::mp("phase_in"));
+      set_msg_handler(
+        pmt::mp("phase_in"),
+        boost::bind(&t_control_tx_cc_impl::set_phase, this, _1)
+      );
+      message_port_sub(pmt::mp("phase_in"), pmt::mp("phase_out"));
+
     }
 
     /*
@@ -77,6 +86,28 @@ namespace gr {
      */
     t_control_tx_cc_impl::~t_control_tx_cc_impl()
     {
+    }
+
+    void
+    t_control_tx_cc_impl::set_phase(pmt::pmt_t phase_in)
+    {
+      if(pmt::is_dict(phase_in)){
+        pmt::pmt_t not_found = pmt::string_to_symbol("not_found");
+        if (_antenna_number == 1) {
+          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key1"), not_found));
+        } else if (_antenna_number == 2) {
+          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key2"), not_found));
+        } else if (_antenna_number == 3) {
+          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key3"), not_found));
+        } else {
+          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key4"), not_found));
+        }
+      }
+    }
+    void t_control_tx_cc_impl::shift_the_phase(gr_complex &temp){
+      double magn = abs(temp);
+      double shifted_arg = _phase;
+      temp = std::polar(magn, shifted_arg);
     }
 
     void
@@ -95,12 +126,14 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
-      /* 
+      /*
        * signal is not changed through carrier sensing block, i.e., it simply output its input.
        */
       for(int i = 0; i < noutput_items; i++)
       {
-        out[i] = in[i];
+        gr_complex temp = in[i];
+        shift_the_phase(temp);
+        out[i] = temp;
       }
 
       std::vector <tag_t> tags;
@@ -113,16 +146,16 @@ namespace gr {
           //std::cout << "++++++++++   t_control_tx_cc ID: " << _block_id << "  ++++++++++" << std::endl;
         }
         /*
-          JUA parketizer code starts 
-        */ 
+          JUA parketizer code starts
+        */
         // Add key to the tx_time tag
         static const pmt::pmt_t time_key = pmt::string_to_symbol("tx_time");
         // Get the time
         struct timeval t;
         gettimeofday(&t, NULL);
         double tx_time = t.tv_sec + t.tv_usec / 1000000.0;
-        double min_time_diff = pmt::to_double(_packet_len_tag.value) / _bps; //Max packet len [bit] / bit rate 
-        // double min_time_diff = (1000 * 8.0) / _bps; //Max packet len [bit] / bit rate 
+        double min_time_diff = pmt::to_double(_packet_len_tag.value) / _bps; //Max packet len [bit] / bit rate
+        // double min_time_diff = (1000 * 8.0) / _bps; //Max packet len [bit] / bit rate
         // Ensure that frames are not overlap each other
 //        if((tx_time - _last_tx_time) < (min_time_diff + _t_pretx_interval_s)) {
 //          tx_time = _last_tx_time + min_time_diff;
@@ -139,17 +172,21 @@ namespace gr {
           pmt::from_uint64(now.get_full_secs()),
           pmt::from_double(now.get_frac_secs())
         );
-        
+
         add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
-        
+        if(_develop_mode)
+        {
+          std::cout << "offset: " << _packet_len_tag.offset << std::endl;
+        }
+
         if(_record_on)
         {
           std::ofstream ofs (_file_name_str.c_str(), std::ofstream::app);
           ofs << t.tv_sec << " " << t.tv_usec << "\n";
           ofs.close();
         }
-       /* 
-         JUA parketizer code starts 
+       /*
+         JUA parketizer code starts
        */
       }
       // Do <+signal processing+>
@@ -164,7 +201,7 @@ namespace gr {
     int
     t_control_tx_cc_impl::process_tags_info(std::vector <tag_t> tags)
     {
-      int tag_detected = 0; 
+      int tag_detected = 0;
       for(int i = 0; i < tags.size(); i++)
       {
         /*
@@ -177,18 +214,18 @@ namespace gr {
           std::cout << "Srcid: " << tags[i].srcid << std::endl;
         }
         */
-          
+
           // std::cout << "string comapre: " << pmt::symbol_to_string(tags[i].key) << "packet_len" <<  (pmt::symbol_to_string(tags[i].key) == "packet_len") << std::endl;
         if(pmt::symbol_to_string(tags[i].key) == "packet_len")
         {
-          _packet_len_tag = tags[i];          
+          _packet_len_tag = tags[i];
           tag_detected = 1;
           if(_develop_mode)
           {
             std::cout << "++++ t_control ID: " << _block_id << " gets a packet (packet_len tag) to send ";
             if(_develop_mode == 2)
             {
-              struct timeval t; 
+              struct timeval t;
               gettimeofday(&t, NULL);
               double current_time_show = t.tv_sec - double(int(t.tv_sec/10)*10) + t.tv_usec / 1000000.0;
               std::cout << " at time " << current_time_show << " s" << std::endl;
@@ -205,4 +242,3 @@ namespace gr {
 
   } /* namespace inets */
 } /* namespace gr */
-

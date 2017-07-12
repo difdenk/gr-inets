@@ -95,6 +95,8 @@ install(FILES
     cmd_port_control.h
     parameter_list.h
     antenna_array_controller.h
-    mux.h DESTINATION include/inets
+    mux.h
+    tag_debug.h
+    direction_mapper.h DESTINATION include/inets
 
 )

@@ -80,6 +80,7 @@
 #include "inets/parameter_list.h"
 #include "inets/antenna_array_controller.h"
 #include "inets/mux.h"
+#include "inets/direction_mapper.h"
 #include "inets/general_timeout.h"
 #include "inets/cogmac_ch_pool.h"
 #include "inets/frame_replicate.h"
@@ -104,6 +105,7 @@
 #include "inets/parameter_list.h"
 #include "inets/antenna_array_controller.h"
 #include "inets/mux.h"
+#include "inets/direction_mapper.h"
 %}
 %include "gnuradio/digital/constellation.h"
 
@@ -276,3 +278,5 @@ GR_SWIG_BLOCK_MAGIC2(inets, antenna_array_controller);
 
 %include "inets/mux.h"
 GR_SWIG_BLOCK_MAGIC2(inets, mux);
+%include "inets/direction_mapper.h"
+GR_SWIG_BLOCK_MAGIC2(inets, direction_mapper);

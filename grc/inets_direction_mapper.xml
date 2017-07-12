@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<block>
+  <name>direction_mapper</name>
+  <key>inets_direction_mapper</key>
+  <category>[inets]</category>
+  <import>import inets</import>
+  <make>inets.direction_mapper($develop_mode, $block_id, $phase_1, $phase_2, $phase_3, $phase_4)</make>
+  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
+       Sub-nodes:
+       * name
+       * key (makes the value accessible as $keyname, e.g. in the make node)
+       * type -->
+  <param>
+    <name>phase_1</name>
+    <key>phase_1</key>
+    <type>float</type>
+  </param>
+  <param>
+    <name>phase_2</name>
+    <key>phase_2</key>
+    <type>float</type>
+  </param>
+  <param>
+    <name>phase_3</name>
+    <key>phase_3</key>
+    <type>float</type>
+  </param>
+  <param>
+    <name>phase_4</name>
+    <key>phase_4</key>
+    <type>float</type>
+  </param>
+
+  <!-- Make one 'sink' node per input. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <sink>
+    <name>frame_in</name>
+    <type>message</type>
+  </sink>
+
+  <!-- Make one 'source' node per output. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <source>
+    <name>phase_out</name>
+    <type>message</type>
+  </source>
+</block>
