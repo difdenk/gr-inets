@@ -39,7 +39,7 @@ namespace gr {
       double _phase_2;
       double _phase_3;
       double _phase_4;
-      pmt::pmt_t phase_values;
+      pmt::pmt_t _phase_values;
       void accept_frame(pmt::pmt_t trigger);
     };
 

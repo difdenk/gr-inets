@@ -62,11 +62,11 @@ namespace gr {
       pmt::pmt_t phase_value3 = pmt::from_double(_phase_3);
       pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
       pmt::pmt_t phase_value4 = pmt::from_double(_phase_4);
-      pmt::pmt_t phase_values = pmt::make_dict();
-      pmt::dict_add(phase_values, phase_key1, phase_value1);
-      pmt::dict_add(phase_values, phase_key2, phase_value2);
-      pmt::dict_add(phase_values, phase_key3, phase_value3);
-      pmt::dict_add(phase_values, phase_key4, phase_value4);
+      _phase_values = pmt::make_dict();
+      _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
+      _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
+      _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
+      _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
     }
 
     /*
@@ -75,8 +75,9 @@ namespace gr {
     direction_mapper_impl::~direction_mapper_impl()
     {
     }
+
     void direction_mapper_impl::accept_frame(pmt::pmt_t trigger){
-      gr::basic_block::message_port_pub(pmt::mp("phase_out"), phase_values);
+      message_port_pub(pmt::mp("phase_out"), _phase_values);
     }
 
 
