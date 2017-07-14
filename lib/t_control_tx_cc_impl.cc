@@ -61,11 +61,6 @@ namespace gr {
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
-        uhd::device_addr_t args("addr0=192.168.10.2,addr1=192.168.10.3");
-        uhd::usrp::multi_usrp::sptr usrp = uhd::usrp::multi_usrp::make(args);
-        double mcr0 = usrp->get_master_clock_rate(0);
-        double mcr1 = usrp->get_master_clock_rate(1);
-        std::cout << mcr0 << "   " << mcr1 << '\n';
       if(_record_on)
       {
         time_t tt = time(0);   // get time now
