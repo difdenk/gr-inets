@@ -55,7 +55,7 @@ namespace gr {
         _file_name_extension(file_name_extension),
         _name_with_timestamp(name_with_timestamp),
         _record_on(record_on),
-        _phase(0),
+        _phase(0.78),
         _bps(bps),
         _antenna_number(antenna_number)
     {
@@ -117,9 +117,11 @@ namespace gr {
     }
 
     void t_control_tx_cc_impl::shift_the_phase(gr_complex &temp){
+      //std::cout << "input: " << temp << '\n';
       double magn = abs(temp);
-      double shifted_arg = _phase;
+      double shifted_arg = _phase + arg(temp);
       temp = std::polar(magn, shifted_arg);
+      //std::cout << "shifted output: " << temp << '\n';
     }
 
     void
