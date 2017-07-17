@@ -30,6 +30,8 @@
 #include "t_control_tx_cc_impl.h"
 #include <uhd/types/time_spec.hpp>
 #include <sys/time.h>
+#include <stdlib.h>
+#define _PI 3.14159265359
 
 namespace gr {
   namespace inets {
@@ -48,7 +50,7 @@ namespace gr {
       : gr::block("t_control_tx_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
-        _develop_mode(0),
+        _develop_mode(develop_mode),
         _block_id(block_id),
         _last_tx_time(0),
         _t_pretx_interval_s(t_pretx_interval_s),
@@ -61,11 +63,6 @@ namespace gr {
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
-        uhd::device_addr_t args("addr0=192.168.10.2,addr1=192.168.10.3");
-        uhd::usrp::multi_usrp::sptr usrp = uhd::usrp::multi_usrp::make(args);
-        double mcr0 = usrp->get_master_clock_rate(0);
-        double mcr1 = usrp->get_master_clock_rate(1);
-        std::cout << mcr0 << "   " << mcr1 << '\n';
       if(_record_on)
       {
         time_t tt = time(0);   // get time now
@@ -88,43 +85,6 @@ namespace gr {
      */
     t_control_tx_cc_impl::~t_control_tx_cc_impl()
     {
-    }
-
-    void
-    t_control_tx_cc_impl::set_phase(pmt::pmt_t phase_in)
-    {
-      if(pmt::is_dict(phase_in)) {
-        if (_develop_mode) {
-          std::cout << "Phase is is a dict" << '\n';
-        }
-        //pmt::print(pmt::dict_values(phase_in));
-        pmt::pmt_t not_found = pmt::string_to_symbol("mistake");
-        if (_antenna_number == 1) {
-          if (pmt::dict_has_key(phase_in, pmt::string_to_symbol("phase_key1"))) {
-            _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key1"), not_found));
-            if (_develop_mode) {
-              std::cout << "dict has the key" << '\n';
-            }
-          }
-          else if (_develop_mode)
-            std::cout << "The phase_key1 doesnt exist in the dict." << '\n';
-        } else if (_antenna_number == 2) {
-          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key2"), not_found));
-        } else if (_antenna_number == 3) {
-          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key3"), not_found));
-        } else {
-          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key4"), not_found));
-        }
-      }
-      else {
-        std::cout << "phase_in is not a dictionary" << '\n';
-      }
-    }
-
-    void t_control_tx_cc_impl::shift_the_phase(gr_complex &temp){
-      double magn = abs(temp);
-      double shifted_arg = _phase;
-      temp = std::polar(magn, shifted_arg);
     }
 
     void
@@ -253,8 +213,57 @@ namespace gr {
           break;
         }
       }
-
       return tag_detected;
+    }
+
+    void t_control_tx_cc_impl::set_phase(pmt::pmt_t phase_in) {
+      if(pmt::is_dict(phase_in)) {
+        if (_develop_mode) {
+          std::cout << "Phase is is a dict" << '\n';
+        }
+        //pmt::print(pmt::dict_values(phase_in));
+        pmt::pmt_t not_found = pmt::string_to_symbol("mistake");
+        if (_antenna_number == 1) {
+          if (pmt::dict_has_key(phase_in, pmt::string_to_symbol("phase_key1"))) {
+            _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key1"), not_found));
+            if (_develop_mode) {
+              std::cout << "dict has the key" << '\n';
+            }
+          }
+          else if (_develop_mode)
+            std::cout << "The phase_key1 doesnt exist in the dict." << '\n';
+        } else if (_antenna_number == 2) {
+          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key2"), not_found));
+        } else if (_antenna_number == 3) {
+          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key3"), not_found));
+        } else {
+          _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key4"), not_found));
+        }
+      }
+      else {
+        std::cout << "phase_in is not a dictionary" << '\n';
+      }
+    }
+
+    void t_control_tx_cc_impl::shift_the_phase(gr_complex &temp){
+      double magn = abs(temp);
+      double shifted_arg = _phase + arg(temp);
+      int v = rand() % 100000; // to avoid gnuradio crashing
+      if (_develop_mode) {
+        if (v < 1) {
+          std::cout << "input: " << temp << '\n';
+          std::cout << "argument in: " << arg(temp) << '\n';
+          std::cout << "argument out: " << shifted_arg << '\n';
+          std::cout << "cosine in: " << cos(arg(temp)) << '\n';
+          std::cout << "cosine out: " << cos(shifted_arg) << '\n';
+        }
+      }
+      temp = std::polar(magn, shifted_arg);
+      if (_develop_mode) {
+        if (v < 1) {
+          std::cout << "shifted output: " << temp << '\n';
+        }
+      }
     }
 
   } /* namespace inets */

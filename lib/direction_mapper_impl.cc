@@ -24,6 +24,7 @@
 
 #include <gnuradio/io_signature.h>
 #include "direction_mapper_impl.h"
+#define _PI 3.14159265359
 
 namespace gr {
   namespace inets {
@@ -44,10 +45,10 @@ namespace gr {
               gr::io_signature::make(0, 0, 0)),
               _develop_mode(develop_mode),
               _block_id(block_id),
-              _phase_1(phase_1),
-              _phase_2(phase_2),
-              _phase_3(phase_3),
-              _phase_4(phase_4)
+              _phase_1(phase_1*_PI/180),
+              _phase_2(phase_2*_PI/180),
+              _phase_3(phase_3*_PI/180),
+              _phase_4(phase_4*_PI/180)
     {
       if(develop_mode)
       std::cout << "develop_mode of Direction mapper is activated." << '\n';
@@ -78,6 +79,7 @@ namespace gr {
 
     void direction_mapper_impl::accept_frame(pmt::pmt_t trigger){
       message_port_pub(pmt::mp("phase_out"), _phase_values);
+      std::cout << _phase_1 << '\n';
     }
 
 

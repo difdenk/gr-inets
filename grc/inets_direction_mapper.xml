@@ -45,22 +45,22 @@
   </param>
 
  <param>
-    <name>phase_1</name>
+    <name>phase_1 in Degrees</name>
     <key>phase_1</key>
     <type>float</type>
   </param>
   <param>
-    <name>phase_2</name>
+    <name>phase_2 in Degrees</name>
     <key>phase_2</key>
     <type>float</type>
   </param>
   <param>
-    <name>phase_3</name>
+    <name>phase_3 in Degrees</name>
     <key>phase_3</key>
     <type>float</type>
   </param>
   <param>
-    <name>phase_4</name>
+    <name>phase_4 in Degrees</name>
     <key>phase_4</key>
     <type>float</type>
   </param>
