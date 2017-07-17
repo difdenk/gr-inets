@@ -99,7 +99,6 @@ list(APPEND inets_sources
     parameter_list_impl.cc
     antenna_array_controller_impl.cc
     mux_impl.cc
-    tag_debug_impl.cc
     direction_mapper_impl.cc )
 
 set(inets_sources "${inets_sources}" PARENT_SCOPE)
