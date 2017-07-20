@@ -41,12 +41,11 @@ namespace gr {
       double _bps;
       double _phase;
       double _t_pretx_interval_s;
+      double _difference;
       tag_t _packet_len_tag;
       int process_tags_info(std::vector <tag_t> tags);
       void set_phase(pmt::pmt_t phase_in);
       void shift_the_phase(gr_complex &temp);
-
-
 
      public:
       t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string fime_name_extension, int name_with_timestamp, int antenna_number);

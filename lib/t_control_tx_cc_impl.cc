@@ -60,7 +60,8 @@ namespace gr {
         _record_on(record_on),
         _phase(0),
         _bps(bps),
-        _antenna_number(antenna_number)
+        _antenna_number(antenna_number),
+        _difference(0)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -79,7 +80,22 @@ namespace gr {
       set_msg_handler(pmt::mp("phase_in"), boost::bind(&t_control_tx_cc_impl::set_phase, this, _1)
       );
       //message_port_sub(pmt::mp("phase_out"), pmt::mp("direction_mapper"));
-    }
+      uhd::device_addr_t dev_addr;
+      dev_addr["addr0"] = "192.168.10.2";
+      dev_addr["addr1"] = "192.168.10.3";
+      uhd::usrp::multi_usrp::sptr dev = uhd::usrp::multi_usrp::make(dev_addr);
+      uhd::time_spec_t usrp_time = dev->get_time_now();
+      int usrp_time_full = usrp_time.get_full_secs();
+      double usrp_time_frac = usrp_time.get_frac_secs();
+      double time_sum = usrp_time_full + usrp_time_frac;
+      struct timeval ti;
+      gettimeofday(&ti, NULL);
+      double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
+      _difference = pc_clock - time_sum;
+      std::cout << "USRP time: " << time_sum << '\n';
+      std::cout << "PC time: " << pc_clock << '\n';
+      std::cout << "Time difference: " << _difference << '\n';
+      }
 
     /*
      * Our virtual destructor.
@@ -143,19 +159,8 @@ namespace gr {
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
         _last_tx_time = tx_time;
-        /*size_t mboard = 0;
-        uhd::device_addr_t dev_addr;
-        dev_addr["addr0"] = "192.168.10.2";
-        dev_addr["addr1"] = "192.168.10.3";
-        uhd::usrp::multi_usrp::sptr dev = uhd::usrp::multi_usrp::make(dev_addr);
-        uhd::time_spec_t usrp_time = uhd::usrp::multi_usrp::get_time_now(0);
-        int usrp_time_full = usrp_time.get_full_secs();
-        double usrp_time_frac = usrp_time.get_frac_secs();
-        double time_sum = usrp_time_full + usrp_time_frac;
-        std::cout << "USRP time: " << time_sum << '\n';
-        std::cout << "PC time: "<< tx_time << '\n';*/
         // question 1: why add 0.05?
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time) + uhd::time_spec_t(_t_pretx_interval_s);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time - _difference) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -280,6 +285,5 @@ namespace gr {
         }
       }
     }
-
   } /* namespace inets */
 } /* namespace gr */
