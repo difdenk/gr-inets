@@ -31,6 +31,7 @@
 #include <uhd/types/time_spec.hpp>
 #include <sys/time.h>
 #include <stdlib.h>
+#include <uhd/usrp/multi_usrp.hpp>
 #define _PI 3.14159265359
 
 namespace gr {
@@ -142,6 +143,17 @@ namespace gr {
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
         _last_tx_time = tx_time;
+        /*size_t mboard = 0;
+        uhd::device_addr_t dev_addr;
+        dev_addr["addr0"] = "192.168.10.2";
+        dev_addr["addr1"] = "192.168.10.3";
+        uhd::usrp::multi_usrp::sptr dev = uhd::usrp::multi_usrp::make(dev_addr);
+        uhd::time_spec_t usrp_time = uhd::usrp::multi_usrp::get_time_now(0);
+        int usrp_time_full = usrp_time.get_full_secs();
+        double usrp_time_frac = usrp_time.get_frac_secs();
+        double time_sum = usrp_time_full + usrp_time_frac;
+        std::cout << "USRP time: " << time_sum << '\n';
+        std::cout << "PC time: "<< tx_time << '\n';*/
         // question 1: why add 0.05?
         uhd::time_spec_t now = uhd::time_spec_t(tx_time) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
@@ -149,8 +161,11 @@ namespace gr {
           pmt::from_uint64(now.get_full_secs()),
           pmt::from_double(now.get_frac_secs())
         );
+        //pmt::pmt_t sob_key = pmt::string_to_symbol("tx_sob");
+        //pmt::pmt_t sob_value;
 
         add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
+        //add_item_tag(0,_packet_len_tag.offset, sob_key, sob_value);
         if(_develop_mode)
         {
           std::cout << "offset: " << _packet_len_tag.offset << std::endl;

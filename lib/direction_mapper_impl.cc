@@ -79,7 +79,6 @@ namespace gr {
 
     void direction_mapper_impl::accept_frame(pmt::pmt_t trigger){
       message_port_pub(pmt::mp("phase_out"), _phase_values);
-      std::cout << _phase_1 << '\n';
     }
 
 
