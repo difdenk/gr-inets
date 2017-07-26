@@ -61,7 +61,8 @@ namespace gr {
         _phase(0),
         _bps(bps),
         _antenna_number(antenna_number),
-        _difference(0)
+        _difference(0),
+        _begin_time(0)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -80,22 +81,30 @@ namespace gr {
       set_msg_handler(pmt::mp("phase_in"), boost::bind(&t_control_tx_cc_impl::set_phase, this, _1)
       );
       //message_port_sub(pmt::mp("phase_out"), pmt::mp("direction_mapper"));
-      uhd::device_addr_t dev_addr;
-      dev_addr["addr0"] = "192.168.10.2";
-      dev_addr["addr1"] = "192.168.10.3";
-      uhd::usrp::multi_usrp::sptr dev = uhd::usrp::multi_usrp::make(dev_addr);
-      uhd::time_spec_t usrp_time = dev->get_time_now();
-      int usrp_time_full = usrp_time.get_full_secs();
-      double usrp_time_frac = usrp_time.get_frac_secs();
-      double time_sum = usrp_time_full + usrp_time_frac;
       struct timeval ti;
       gettimeofday(&ti, NULL);
       double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
-      _difference = pc_clock - time_sum;
-      std::cout << "USRP time: " << time_sum << '\n';
-      std::cout << "PC time: " << pc_clock << '\n';
-      std::cout << "Time difference: " << _difference << '\n';
+      if (antenna_number == 1) {
+        uhd::device_addr_t dev_addr;
+        dev_addr["addr0"] = "192.168.10.2";
+        dev_addr["addr1"] = "192.168.10.3";
+        _dev = uhd::usrp::multi_usrp::make(dev_addr);
+        _dev->set_time_now(uhd::time_spec_t(pc_clock));
+
+      // This command will be processed fairly soon after the last PPS edge:
+      //_dev->set_time_next_pps(uhd::time_spec_t(0.0));
+      uhd::time_spec_t usrp_time = _dev->get_time_now();
+      int usrp_time_full = usrp_time.get_full_secs();
+      double usrp_time_frac = usrp_time.get_frac_secs();
+      double _time_sum = usrp_time_full + usrp_time_frac;
+      //_begin_time = clock();
+      //_difference = time_sum;
+      //_time_sum = time_sum;
+      std::cout << "USRP time: " << _time_sum << '\n';
+      std::cout << "PC time: " << pc_clock  << '\n';
+      //std::cout << "Time difference: " << _difference << '\n';
       }
+    }
 
     /*
      * Our virtual destructor.
@@ -159,8 +168,20 @@ namespace gr {
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
         _last_tx_time = tx_time;
+        //if(rand()%10000 < 1)
+          //std::cout << "elapsed_time: " << elapsed_time() << '\n';
+        //double duration = _time_sum + ((clock() - _begin_time) / CLOCKS_PER_SEC);
+        //tx_time = _time_sum + duration;
+        if (_antenna_number == 1) {
+        uhd::time_spec_t usrp_time = _dev->get_time_now();
+        int usrp_time_full = usrp_time.get_full_secs();
+        double usrp_time_frac = usrp_time.get_frac_secs();
+        double time_sum = usrp_time_full + usrp_time_frac;
+        std::cout << "time sum: "<< time_sum << '\n';
+        }
         // question 1: why add 0.05?
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time - _difference) + uhd::time_spec_t(_t_pretx_interval_s);
+        //std::cout << "elapsed time: " << elapsed_time() << '\n';
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -284,6 +305,9 @@ namespace gr {
           std::cout << "shifted output: " << temp << '\n';
         }
       }
+    }
+    double  t_control_tx_cc_impl::elapsed_time() {
+      return (clock() - (t_control_tx_cc_impl::_begin_time)) / CLOCKS_PER_SEC;
     }
   } /* namespace inets */
 } /* namespace gr */
