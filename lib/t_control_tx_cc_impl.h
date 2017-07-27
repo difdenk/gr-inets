@@ -42,10 +42,8 @@ namespace gr {
       double _bps;
       double _phase;
       double _t_pretx_interval_s;
-      double _difference;
       double _time_sum;
       tag_t _packet_len_tag;
-      clock_t _begin_time;
       uhd::usrp::multi_usrp::sptr _dev;
 
      public:
@@ -54,7 +52,6 @@ namespace gr {
       int process_tags_info(std::vector <tag_t> tags);
       void set_phase(pmt::pmt_t phase_in);
       void shift_the_phase(gr_complex &temp);
-      double elapsed_time();
 
       // Where all the action really happens
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);

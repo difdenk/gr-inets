@@ -60,9 +60,7 @@ namespace gr {
         _record_on(record_on),
         _phase(0),
         _bps(bps),
-        _antenna_number(antenna_number),
-        _difference(0),
-        _begin_time(0)
+        _antenna_number(antenna_number)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -97,12 +95,8 @@ namespace gr {
       int usrp_time_full = usrp_time.get_full_secs();
       double usrp_time_frac = usrp_time.get_frac_secs();
       double _time_sum = usrp_time_full + usrp_time_frac;
-      //_begin_time = clock();
-      //_difference = time_sum;
-      //_time_sum = time_sum;
       std::cout << "USRP time: " << _time_sum << '\n';
       std::cout << "PC time: " << pc_clock  << '\n';
-      //std::cout << "Time difference: " << _difference << '\n';
       }
     }
 
@@ -168,20 +162,17 @@ namespace gr {
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
         _last_tx_time = tx_time;
-        //if(rand()%10000 < 1)
-          //std::cout << "elapsed_time: " << elapsed_time() << '\n';
-        //double duration = _time_sum + ((clock() - _begin_time) / CLOCKS_PER_SEC);
-        //tx_time = _time_sum + duration;
         if (_antenna_number == 1) {
         uhd::time_spec_t usrp_time = _dev->get_time_now();
         int usrp_time_full = usrp_time.get_full_secs();
         double usrp_time_frac = usrp_time.get_frac_secs();
         double time_sum = usrp_time_full + usrp_time_frac;
-        std::cout << "time sum: "<< time_sum << '\n';
+        std::cout << "USRP Time: "<< time_sum << '\n';
+        std::cout << "Time difference: " << tx_time - time_sum << '\n';
         }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time) + uhd::time_spec_t(_t_pretx_interval_s);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.77) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -305,9 +296,6 @@ namespace gr {
           std::cout << "shifted output: " << temp << '\n';
         }
       }
-    }
-    double  t_control_tx_cc_impl::elapsed_time() {
-      return (clock() - (t_control_tx_cc_impl::_begin_time)) / CLOCKS_PER_SEC;
     }
   } /* namespace inets */
 } /* namespace gr */
