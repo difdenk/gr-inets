@@ -23,31 +23,35 @@
 #endif
 
 #include <iostream>
+#include <complex>
 #include <fstream>
 #include <string>
 #include <ctime>
 #include <gnuradio/io_signature.h>
+#include <math.h>
 #include "t_control_tx_cc_impl.h"
 #include <uhd/types/time_spec.hpp>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <uhd/usrp/multi_usrp.hpp>
 #define _PI 3.14159265359
+#define Imag std::complex<double>(0, 1)
+#define Speed_of_Light 299792458
 
 namespace gr {
   namespace inets {
 
     t_control_tx_cc::sptr
-    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number)
+    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency)
     {
       return gnuradio::get_initial_sptr
-        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp, antenna_number));
+        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp, antenna_number, frequency));
     }
 
     /*
      * The private constructor
      */
-    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number)
+    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency)
       : gr::block("t_control_tx_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
@@ -60,7 +64,8 @@ namespace gr {
         _record_on(record_on),
         _phase(0),
         _bps(bps),
-        _antenna_number(antenna_number)
+        _antenna_number(antenna_number),
+        _frequency(frequency)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -82,7 +87,7 @@ namespace gr {
       struct timeval ti;
       gettimeofday(&ti, NULL);
       double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
-      if (antenna_number == 1) {
+      /*if (antenna_number == 1) {
         uhd::device_addr_t dev_addr;
         dev_addr["addr0"] = "192.168.10.2";
         dev_addr["addr1"] = "192.168.10.3";
@@ -97,7 +102,7 @@ namespace gr {
       double _time_sum = usrp_time_full + usrp_time_frac;
       std::cout << "USRP time: " << _time_sum << '\n';
       std::cout << "PC time: " << pc_clock  << '\n';
-      }
+    }*/
     }
 
     /*
@@ -162,14 +167,14 @@ namespace gr {
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
         _last_tx_time = tx_time;
-        if (_antenna_number == 1) {
+        /*if (_antenna_number == 1) {
         uhd::time_spec_t usrp_time = _dev->get_time_now();
         int usrp_time_full = usrp_time.get_full_secs();
         double usrp_time_frac = usrp_time.get_frac_secs();
         double time_sum = usrp_time_full + usrp_time_frac;
         std::cout << "USRP Time: "<< time_sum << '\n';
         std::cout << "Time difference: " << tx_time - time_sum << '\n';
-        }
+      }*/
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
         uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.77) + uhd::time_spec_t(_t_pretx_interval_s);
@@ -278,22 +283,25 @@ namespace gr {
     }
 
     void t_control_tx_cc_impl::shift_the_phase(gr_complex &temp){
-      double magn = abs(temp);
-      double shifted_arg = _phase + arg(temp);
-      int v = rand() % 100000; // to avoid gnuradio crashing
+      int v = rand() % 100000; // to avoid gnuradio crashing from develop_mode
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "input: " << temp << '\n';
-          std::cout << "argument in: " << arg(temp) << '\n';
-          std::cout << "argument out: " << shifted_arg << '\n';
-          std::cout << "cosine in: " << cos(arg(temp)) << '\n';
-          std::cout << "cosine out: " << cos(shifted_arg) << '\n';
         }
       }
-      temp = std::polar(magn, shifted_arg);
+      double magn = real(temp);
+      double arg = imag(temp);
+      std::complex<double> temp1(magn, arg);
       if (_develop_mode) {
         if (v < 1) {
-          std::cout << "shifted output: " << temp << '\n';
+          std::cout << "temp1: " << temp1 << '\n';
+        }
+      }
+      temp = temp1 * std::exp(0.084 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      //gr_complex temp2 = cos((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light)) + Imag * sin((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light));
+      if (_develop_mode) {
+        if (v < 1) {
+          std::cout << "output: " << temp << '\n';
         }
       }
     }
