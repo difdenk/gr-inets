@@ -177,7 +177,7 @@ namespace gr {
       }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.76) + uhd::time_spec_t(_t_pretx_interval_s);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.74) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -277,19 +277,23 @@ namespace gr {
       int v = rand() % 1000; // to avoid gnuradio crashing from develop_mode
       if (_develop_mode) {
         if (v < 1) {
-          std::cout << "input: " << temp << '\n';
-          std::cout << "output in polar form: " << std::polar(real(temp), imag(temp)) << '\n';
+          std::cout << "input in rectangular form: " << temp << '\n';
+          std::cout << "input in polar form: " << sqrt(real(temp)*real(temp)+imag(temp)*imag(temp)) << ", ";
+          std::cout << std::fmod(atan2(imag(temp),real(temp)), 2*_PI) * (180/_PI) << '\n';
         }
       }
       double magn = real(temp);
       double arg = imag(temp);
       std::complex<double> temp1(magn, arg);
-      temp = temp1 * std::exp(Speed_of_Light/(_frequency*2) * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      std::complex<double> weight = std::exp(Speed_of_Light/(_frequency*2) * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      temp = temp1 * weight;
       //gr_complex temp2 = cos((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light)) + Imag * sin((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light));
       if (_develop_mode) {
         if (v < 1) {
+          std::cout << "the weight of antenna " << weight << '\n';
           std::cout << "output in rectangular form: " << temp << '\n';
-          std::cout << "output in polar form: " << std::polar(real(temp), imag(temp)) << '\n';
+          std::cout << "output in polar form: " << sqrt(real(temp)*real(temp)+imag(temp)*imag(temp)) << ", ";
+          std::cout << std::fmod(atan2(imag(temp),real(temp)), 2*_PI) * (180/_PI) << '\n';
         }
       }
     }
