@@ -278,21 +278,18 @@ namespace gr {
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "input: " << temp << '\n';
+          std::cout << "output in polar form: " << std::polar(real(temp), imag(temp)) << '\n';
         }
       }
       double magn = real(temp);
       double arg = imag(temp);
       std::complex<double> temp1(magn, arg);
-      if (_develop_mode) {
-        if (v < 1) {
-          std::cout << "temp1: " << temp1 << '\n';
-        }
-      }
-      temp = temp1 * std::exp(0.084 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      temp = temp1 * std::exp(Speed_of_Light/(_frequency*2) * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       //gr_complex temp2 = cos((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light)) + Imag * sin((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light));
       if (_develop_mode) {
         if (v < 1) {
-          std::cout << "output: " << temp << '\n';
+          std::cout << "output in rectangular form: " << temp << '\n';
+          std::cout << "output in polar form: " << std::polar(real(temp), imag(temp)) << '\n';
         }
       }
     }
