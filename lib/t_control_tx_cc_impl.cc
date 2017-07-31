@@ -87,7 +87,7 @@ namespace gr {
       struct timeval ti;
       gettimeofday(&ti, NULL);
       double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
-      /*if (antenna_number == 1) {
+      if (antenna_number == 1) {
         uhd::device_addr_t dev_addr;
         dev_addr["addr0"] = "192.168.10.2";
         dev_addr["addr1"] = "192.168.10.3";
@@ -102,7 +102,7 @@ namespace gr {
       double _time_sum = usrp_time_full + usrp_time_frac;
       std::cout << "USRP time: " << _time_sum << '\n';
       std::cout << "PC time: " << pc_clock  << '\n';
-    }*/
+    }
     }
 
     /*
@@ -167,32 +167,23 @@ namespace gr {
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
         _last_tx_time = tx_time;
-        /*if (_antenna_number == 1) {
+        if (_antenna_number == 1) {
         uhd::time_spec_t usrp_time = _dev->get_time_now();
         int usrp_time_full = usrp_time.get_full_secs();
         double usrp_time_frac = usrp_time.get_frac_secs();
         double time_sum = usrp_time_full + usrp_time_frac;
         std::cout << "USRP Time: "<< time_sum << '\n';
         std::cout << "Time difference: " << tx_time - time_sum << '\n';
-      }*/
+      }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.77) + uhd::time_spec_t(_t_pretx_interval_s);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.76) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
           pmt::from_double(now.get_frac_secs())
         );
-        //pmt::pmt_t sob_key = pmt::string_to_symbol("tx_sob");
-        //pmt::pmt_t sob_value;
-
         add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
-        //add_item_tag(0,_packet_len_tag.offset, sob_key, sob_value);
-        if(_develop_mode)
-        {
-          std::cout << "offset: " << _packet_len_tag.offset << std::endl;
-        }
-
         if(_record_on)
         {
           std::ofstream ofs (_file_name_str.c_str(), std::ofstream::app);
@@ -283,7 +274,7 @@ namespace gr {
     }
 
     void t_control_tx_cc_impl::shift_the_phase(gr_complex &temp){
-      int v = rand() % 100000; // to avoid gnuradio crashing from develop_mode
+      int v = rand() % 1000; // to avoid gnuradio crashing from develop_mode
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "input: " << temp << '\n';
