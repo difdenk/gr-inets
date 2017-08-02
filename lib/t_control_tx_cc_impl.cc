@@ -62,7 +62,7 @@ namespace gr {
         _file_name_extension(file_name_extension),
         _name_with_timestamp(name_with_timestamp),
         _record_on(record_on),
-        _phase(0),
+        _phase((0*_PI)/180),
         _bps(bps),
         _antenna_number(antenna_number),
         _frequency(frequency)
@@ -94,15 +94,17 @@ namespace gr {
         _dev = uhd::usrp::multi_usrp::make(dev_addr);
         _dev->set_time_now(uhd::time_spec_t(pc_clock));
 
-      // This command will be processed fairly soon after the last PPS edge:
-      //_dev->set_time_next_pps(uhd::time_spec_t(0.0));
-      uhd::time_spec_t usrp_time = _dev->get_time_now();
-      int usrp_time_full = usrp_time.get_full_secs();
-      double usrp_time_frac = usrp_time.get_frac_secs();
-      double _time_sum = usrp_time_full + usrp_time_frac;
-      std::cout << "USRP time: " << _time_sum << '\n';
-      std::cout << "PC time: " << pc_clock  << '\n';
-    }
+        // This command will be processed fairly soon after the last PPS edge:
+        //_dev->set_time_next_pps(uhd::time_spec_t(0.0));
+        uhd::time_spec_t usrp_time = _dev->get_time_now();
+        int usrp_time_full = usrp_time.get_full_secs();
+        double usrp_time_frac = usrp_time.get_frac_secs();
+        double _time_sum = usrp_time_full + usrp_time_frac;
+        if (_develop_mode) {
+          std::cout << "USRP time: " << _time_sum << '\n';
+          std::cout << "PC time: " << pc_clock  << '\n';
+        }
+      }
     }
 
     /*
@@ -177,7 +179,7 @@ namespace gr {
       }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.74) + uhd::time_spec_t(_t_pretx_interval_s);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.75) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -285,12 +287,15 @@ namespace gr {
       double magn = real(temp);
       double arg = imag(temp);
       std::complex<double> temp1(magn, arg);
-      std::complex<double> weight = std::exp(Speed_of_Light/(_frequency*2) * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      //Speed_of_Light/(_frequency*2)
+      std::complex<double> weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       temp = temp1 * weight;
       //gr_complex temp2 = cos((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light)) + Imag * sin((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light));
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "the weight of antenna " << weight << '\n';
+          std::cout << "weight in polar form: " << sqrt(real(weight)*real(weight)+imag(weight)*imag(weight)) << ", ";
+          std::cout << std::fmod(atan2(imag(weight),real(weight)), 2*_PI) * (180/_PI) << '\n';
           std::cout << "output in rectangular form: " << temp << '\n';
           std::cout << "output in polar form: " << sqrt(real(temp)*real(temp)+imag(temp)*imag(temp)) << ", ";
           std::cout << std::fmod(atan2(imag(temp),real(temp)), 2*_PI) * (180/_PI) << '\n';
