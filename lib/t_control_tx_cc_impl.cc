@@ -92,10 +92,25 @@ namespace gr {
         dev_addr["addr0"] = "192.168.10.2";
         dev_addr["addr1"] = "192.168.10.3";
         _dev = uhd::usrp::multi_usrp::make(dev_addr);
-        _dev->set_time_now(uhd::time_spec_t(pc_clock));
-
+        const uhd::time_spec_t last_pps_time = _dev->get_time_last_pps();
+        while (last_pps_time == _dev->get_time_last_pps()){
+        //sleep 100 milliseconds (give or take)
+        }
         // This command will be processed fairly soon after the last PPS edge:
-        //_dev->set_time_next_pps(uhd::time_spec_t(0.0));
+        _dev->set_time_next_pps(uhd::time_spec_t(pc_clock));
+        //_dev->set_time_unknown_pps(uhd::time_spec_t(pc_clock));
+        //we will tune the frontends in 100ms from now
+        uhd::time_spec_t cmd_time = _dev->get_time_now() + uhd::time_spec_t(0.1);
+        //sets command time on all devices
+        //the next commands are all timed
+        _dev->set_command_time(cmd_time);
+        //tune channel 0 and channel 1
+        _dev->set_tx_freq(3.76e9, 0); // Channel 0
+        _dev->set_tx_freq(3.76e9, 1); // Channel 1
+        //_dev->set_rx_freq(3.76e9, 2); // Channel 0
+        //_dev->set_rx_freq(3.76e9, 3); // Channel 1
+        //end timed commands
+        _dev->clear_command_time();
         uhd::time_spec_t usrp_time = _dev->get_time_now();
         int usrp_time_full = usrp_time.get_full_secs();
         double usrp_time_frac = usrp_time.get_frac_secs();
@@ -130,9 +145,6 @@ namespace gr {
       const gr_complex *in = (const gr_complex *) input_items[0];
       gr_complex *out = (gr_complex *) output_items[0];
 
-      /*
-       * signal is not changed through carrier sensing block, i.e., it simply output its input.
-       */
       for(int i = 0; i < noutput_items; i++)
       {
         gr_complex temp = in[i];
@@ -179,7 +191,7 @@ namespace gr {
       }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time-2.75) + uhd::time_spec_t(_t_pretx_interval_s);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9) + uhd::time_spec_t(_t_pretx_interval_s);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
