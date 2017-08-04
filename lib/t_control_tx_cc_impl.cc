@@ -107,8 +107,8 @@ namespace gr {
         //tune channel 0 and channel 1
         _dev->set_tx_freq(3.76e9, 0); // Channel 0
         _dev->set_tx_freq(3.76e9, 1); // Channel 1
-        //_dev->set_rx_freq(3.76e9, 2); // Channel 0
-        //_dev->set_rx_freq(3.76e9, 3); // Channel 1
+        _dev->set_tx_freq(3.76e9, 2); // Channel 2
+        _dev->set_tx_freq(3.76e9, 3); // Channel 3
         //end timed commands
         _dev->clear_command_time();
         uhd::time_spec_t usrp_time = _dev->get_time_now();
@@ -299,14 +299,17 @@ namespace gr {
       double magn = real(temp);
       double arg = imag(temp);
       std::complex<double> temp1(magn, arg);
-      //Speed_of_Light/(_frequency*2)
-      std::complex<double> weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      std::complex<double> weight;
+      if (_phase >= 0) {
+        weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      } else {
+        weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      }
       temp = temp1 * weight;
-      //gr_complex temp2 = cos((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light)) + Imag * sin((_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light));
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "the weight of antenna " << weight << '\n';
-          std::cout << "weight in polar form: " << sqrt(real(weight)*real(weight)+imag(weight)*imag(weight)) << ", ";
+          std::cout << "weight in polar form: " << sqrt(std::real(weight)*std::real(weight)+std::imag(weight)*std::imag(weight)) << ", ";
           std::cout << std::fmod(atan2(imag(weight),real(weight)), 2*_PI) * (180/_PI) << '\n';
           std::cout << "output in rectangular form: " << temp << '\n';
           std::cout << "output in polar form: " << sqrt(real(temp)*real(temp)+imag(temp)*imag(temp)) << ", ";
