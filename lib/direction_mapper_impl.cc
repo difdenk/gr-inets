@@ -56,12 +56,12 @@ namespace gr {
       message_port_register_in(pmt::mp("frame_in"));
       set_msg_handler(pmt::mp("frame_in"), boost::bind(&direction_mapper_impl::accept_frame, this, _1));
       pmt::pmt_t phase_key1 = pmt::string_to_symbol("phase_key1");
-      pmt::pmt_t phase_value1 = pmt::from_double(_phase_1);
       pmt::pmt_t phase_key2 = pmt::string_to_symbol("phase_key2");
-      pmt::pmt_t phase_value2 = pmt::from_double(_phase_2);
       pmt::pmt_t phase_key3 = pmt::string_to_symbol("phase_key3");
-      pmt::pmt_t phase_value3 = pmt::from_double(_phase_3);
       pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
+      pmt::pmt_t phase_value1 = pmt::from_double(_phase_1);
+      pmt::pmt_t phase_value2 = pmt::from_double(_phase_2);
+      pmt::pmt_t phase_value3 = pmt::from_double(_phase_3);
       pmt::pmt_t phase_value4 = pmt::from_double(_phase_4);
       _phase_values = pmt::make_dict();
       _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);

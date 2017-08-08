@@ -44,12 +44,14 @@ namespace gr {
       double _t_pretx_interval_s;
       double _time_sum;
       double _frequency;
+      double _sweep_mode;
+      double _start;
       tag_t _packet_len_tag;
       uhd::usrp::multi_usrp::sptr _dev;
 
 
      public:
-      t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string fime_name_extension, int name_with_timestamp, int antenna_number, double frequency);
+      t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string fime_name_extension, int name_with_timestamp, int antenna_number, double frequency, double sweep_mode);
       ~t_control_tx_cc_impl();
       int process_tags_info(std::vector <tag_t> tags);
       void set_phase(pmt::pmt_t phase_in);

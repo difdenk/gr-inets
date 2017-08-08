@@ -4,7 +4,7 @@
   <key>inets_t_control_tx_cc</key>
   <category>inets_dmf_phy</category>
   <import>import inets</import>
-  <make>inets.t_control_tx_cc($develop_mode, $block_id, $bps, $t_pretx_interval_s, $record_on, $file_name_extension, $name_with_timestamp, $antenna_number, $frequency)</make>
+  <make>inets.t_control_tx_cc($develop_mode, $block_id, $bps, $t_pretx_interval_s, $record_on, $file_name_extension, $name_with_timestamp, $antenna_number, $frequency, $sweep_mode)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
@@ -52,6 +52,12 @@
     <key>record_on</key>
     <value>record_on</value>
     <type>int</type>
+  </param>
+  <param>
+    <name>Sweep Mode</name>
+    <key>sweep_mode</key>
+    <value>sweep_mode</value>
+    <type>float</type>
   </param>
 
   <param>

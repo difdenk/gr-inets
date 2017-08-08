@@ -42,16 +42,16 @@ namespace gr {
   namespace inets {
 
     t_control_tx_cc::sptr
-    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency)
+    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency, double sweep_mode)
     {
       return gnuradio::get_initial_sptr
-        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp, antenna_number, frequency));
+        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp, antenna_number, frequency, sweep_mode));
     }
 
     /*
      * The private constructor
      */
-    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency)
+    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency, double sweep_mode)
       : gr::block("t_control_tx_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
@@ -65,7 +65,9 @@ namespace gr {
         _phase((0*_PI)/180),
         _bps(bps),
         _antenna_number(antenna_number),
-        _frequency(frequency)
+        _frequency(frequency),
+        _sweep_mode(sweep_mode),
+        _start(0)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -80,10 +82,11 @@ namespace gr {
           file_name << "/home/inets/source/gr-inets/results/" << _file_name_extension << ".txt";
         _file_name_str = file_name.str();
       }
+      if (_sweep_mode) {
+        std::cout << "Sweep Mode is activated !" << '\n';
+      }
       message_port_register_in(pmt::mp("phase_in"));
-      set_msg_handler(pmt::mp("phase_in"), boost::bind(&t_control_tx_cc_impl::set_phase, this, _1)
-      );
-      //message_port_sub(pmt::mp("phase_out"), pmt::mp("direction_mapper"));
+      set_msg_handler(pmt::mp("phase_in"), boost::bind(&t_control_tx_cc_impl::set_phase, this, _1));
       struct timeval ti;
       gettimeofday(&ti, NULL);
       double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
@@ -120,6 +123,7 @@ namespace gr {
           std::cout << "PC time: " << pc_clock  << '\n';
         }
       }
+      _start = clock();
     }
 
     /*
@@ -191,7 +195,7 @@ namespace gr {
       }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9) + uhd::time_spec_t(_t_pretx_interval_s);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -288,7 +292,7 @@ namespace gr {
     }
 
     void t_control_tx_cc_impl::shift_the_phase(gr_complex &temp){
-      int v = rand() % 1000; // to avoid gnuradio crashing from develop_mode
+      int v = rand() % 100000; // to avoid gnuradio crashing from develop_mode
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "input in rectangular form: " << temp << '\n';
@@ -300,10 +304,26 @@ namespace gr {
       double arg = imag(temp);
       std::complex<double> temp1(magn, arg);
       std::complex<double> weight;
+      double sweep_speed = _sweep_mode;
       if (_phase >= 0) {
-        weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
-      } else {
-        weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+        if(_sweep_mode) {
+          double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
+          weight = std::exp(0.085 * (_antenna_number - 1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          if (v < 1)
+          std::cout << "Scanning Angle: " << sweep*180/_PI << '\n';
+        }
+        else
+          weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+      }
+      else {
+        if(_sweep_mode) {
+          double sweep = ((clock() - _start)/CLOCKS_PER_SEC)*_PI/180*sweep_speed;
+          weight = std::exp(0.085 * (4 - _antenna_number) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          if (v < 1)
+          std::cout << "Scanning Angle: " << -sweep*180/_PI << '\n';
+        }
+        else
+          weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       }
       temp = temp1 * weight;
       if (_develop_mode) {
