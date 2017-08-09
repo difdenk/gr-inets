@@ -90,7 +90,7 @@ namespace gr {
       set_msg_handler(pmt::mp("phase_in"), boost::bind(&t_control_tx_cc_impl::set_phase, this, _1));
       struct timeval ti;
       gettimeofday(&ti, NULL);
-      double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;/*
+      double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
       if (antenna_number == 1) {
         uhd::device_addr_t dev_addr;
         dev_addr["addr0"] = "192.168.10.2";
@@ -123,7 +123,7 @@ namespace gr {
           std::cout << "USRP time: " << _time_sum << '\n';
           std::cout << "PC time: " << pc_clock  << '\n';
         }
-      }*/
+      }
     }
 
     /*
@@ -184,7 +184,7 @@ namespace gr {
 //        }
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
-        _last_tx_time = tx_time;/*
+        _last_tx_time = tx_time;
         if (_antenna_number == 1) {
         uhd::time_spec_t usrp_time = _dev->get_time_now();
         int usrp_time_full = usrp_time.get_full_secs();
@@ -192,7 +192,7 @@ namespace gr {
         double time_sum = usrp_time_full + usrp_time_frac;
         std::cout << "USRP Time: "<< time_sum << '\n';
         std::cout << "Time difference: " << tx_time - time_sum << '\n';
-      }*/
+      }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
         uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9);
