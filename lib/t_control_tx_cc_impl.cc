@@ -68,7 +68,8 @@ namespace gr {
         _frequency(frequency),
         _sweep_mode(sweep_mode),
         _start(0),
-        _initial_message(1)
+        _initial_message(1),
+        _first(true)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -190,12 +191,14 @@ namespace gr {
         int usrp_time_full = usrp_time.get_full_secs();
         double usrp_time_frac = usrp_time.get_frac_secs();
         double time_sum = usrp_time_full + usrp_time_frac;
-        std::cout << "USRP Time: "<< time_sum << '\n';
-        std::cout << "Time difference: " << tx_time - time_sum << '\n';
+        if (_develop_mode) {
+          std::cout << "USRP Time: "<< time_sum << '\n';
+          std::cout << "Time difference: " << tx_time - time_sum << '\n';
+        }
       }
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9);
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.99);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -227,18 +230,6 @@ namespace gr {
       int tag_detected = 0;
       for(int i = 0; i < tags.size(); i++)
       {
-        /*
-        if(_develop_mode)
-        {
-          std::cout << "Index of tags: " << i << std::endl;
-          std::cout << "Offset: " << tags[i].offset << std::endl;
-          std::cout << "Key: " << tags[i].key << std::endl;
-          std::cout << "Value: " << tags[i].value << std::endl;
-          std::cout << "Srcid: " << tags[i].srcid << std::endl;
-        }
-        */
-
-          // std::cout << "string comapre: " << pmt::symbol_to_string(tags[i].key) << "packet_len" <<  (pmt::symbol_to_string(tags[i].key) == "packet_len") << std::endl;
         if(pmt::symbol_to_string(tags[i].key) == "packet_len")
         {
           _packet_len_tag = tags[i];
@@ -318,6 +309,9 @@ namespace gr {
             std::cout << "Scanning Angle: " << sweep*180/_PI << '\n';
           } else {
             weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (_first == true && _antenna_number == 1)
+              std::cout << "Scanning Angle: " << _phase*180/_PI << '\n';
+              _first = false;
           }
         }
         else
@@ -332,6 +326,9 @@ namespace gr {
             std::cout << "Scanning Angle: " << -sweep*180/_PI << '\n';
           } else {
             weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (_first == true && _antenna_number == 1)
+              std::cout << "Scanning Angle: " << _phase*180/_PI << '\n';
+              _first = false;
           }
         }
         else
