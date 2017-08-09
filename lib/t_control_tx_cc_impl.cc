@@ -136,7 +136,6 @@ namespace gr {
     void
     t_control_tx_cc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
-      /* <+forecast+> e.g. ninput_items_required[0] = noutput_items */
       ninput_items_required[0] = noutput_items;
     }
 
@@ -177,7 +176,7 @@ namespace gr {
         double min_time_diff = pmt::to_double(_packet_len_tag.value) / _bps; //Max packet len [bit] / bit rate
         // double min_time_diff = (1000 * 8.0) / _bps; //Max packet len [bit] / bit rate
         // Ensure that frames are not overlap each other
-//        if((tx_time - _last_tx_time) < (min_time_diff + _t_pretx_interval_s)) {
+//       if((tx_time - _last_tx_time) < (min_time_diff + _t_pretx_interval_s)) {
 //          tx_time = _last_tx_time + min_time_diff;
 //          if(_develop_mode)
 //            std::cout << "t_control ID " << _block_id << " in time packet" << std::endl;
@@ -193,8 +192,6 @@ namespace gr {
         std::cout << "USRP Time: "<< time_sum << '\n';
         std::cout << "Time difference: " << tx_time - time_sum << '\n';
       }
-        // question 1: why add 0.05?
-        //std::cout << "elapsed time: " << elapsed_time() << '\n';
         uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9);
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
@@ -208,9 +205,6 @@ namespace gr {
           ofs << t.tv_sec << " " << t.tv_usec << "\n";
           ofs.close();
         }
-       /*
-         JUA parketizer code starts
-       */
       }
       // Do <+signal processing+>
       // Tell runtime system how many input items we consumed on
@@ -227,18 +221,6 @@ namespace gr {
       int tag_detected = 0;
       for(int i = 0; i < tags.size(); i++)
       {
-        /*
-        if(_develop_mode)
-        {
-          std::cout << "Index of tags: " << i << std::endl;
-          std::cout << "Offset: " << tags[i].offset << std::endl;
-          std::cout << "Key: " << tags[i].key << std::endl;
-          std::cout << "Value: " << tags[i].value << std::endl;
-          std::cout << "Srcid: " << tags[i].srcid << std::endl;
-        }
-        */
-
-          // std::cout << "string comapre: " << pmt::symbol_to_string(tags[i].key) << "packet_len" <<  (pmt::symbol_to_string(tags[i].key) == "packet_len") << std::endl;
         if(pmt::symbol_to_string(tags[i].key) == "packet_len")
         {
           _packet_len_tag = tags[i];
