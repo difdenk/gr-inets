@@ -46,6 +46,7 @@ namespace gr {
       double _frequency;
       double _sweep_mode;
       double _start;
+      bool _initial_message;
       tag_t _packet_len_tag;
       uhd::usrp::multi_usrp::sptr _dev;
 

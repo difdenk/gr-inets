@@ -67,7 +67,8 @@ namespace gr {
         _antenna_number(antenna_number),
         _frequency(frequency),
         _sweep_mode(sweep_mode),
-        _start(0)
+        _start(0),
+        _initial_message(1)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -89,7 +90,7 @@ namespace gr {
       set_msg_handler(pmt::mp("phase_in"), boost::bind(&t_control_tx_cc_impl::set_phase, this, _1));
       struct timeval ti;
       gettimeofday(&ti, NULL);
-      double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
+      double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;/*
       if (antenna_number == 1) {
         uhd::device_addr_t dev_addr;
         dev_addr["addr0"] = "192.168.10.2";
@@ -122,8 +123,7 @@ namespace gr {
           std::cout << "USRP time: " << _time_sum << '\n';
           std::cout << "PC time: " << pc_clock  << '\n';
         }
-      }
-      _start = clock();
+      }*/
     }
 
     /*
@@ -184,7 +184,7 @@ namespace gr {
 //        }
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
-        _last_tx_time = tx_time;
+        _last_tx_time = tx_time;/*
         if (_antenna_number == 1) {
         uhd::time_spec_t usrp_time = _dev->get_time_now();
         int usrp_time_full = usrp_time.get_full_secs();
@@ -192,7 +192,7 @@ namespace gr {
         double time_sum = usrp_time_full + usrp_time_frac;
         std::cout << "USRP Time: "<< time_sum << '\n';
         std::cout << "Time difference: " << tx_time - time_sum << '\n';
-      }
+      }*/
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
         uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9);
@@ -264,6 +264,10 @@ namespace gr {
 
     void t_control_tx_cc_impl::set_phase(pmt::pmt_t phase_in) {
       if(pmt::is_dict(phase_in)) {
+        if (_initial_message) {
+          _initial_message = 0;
+          _start = clock();
+        }
         if (_develop_mode) {
           std::cout << "Phase is is a dict" << '\n';
         }
@@ -306,21 +310,29 @@ namespace gr {
       std::complex<double> weight;
       double sweep_speed = _sweep_mode;
       if (_phase >= 0) {
-        if(_sweep_mode) {
+        if(_sweep_mode && !_initial_message) {
           double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
-          weight = std::exp(0.085 * (_antenna_number - 1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
-          if (v < 1)
-          std::cout << "Scanning Angle: " << sweep*180/_PI << '\n';
+          if (sweep < _phase) {
+            weight = std::exp(0.085 * (_antenna_number - 1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (v < 1)
+            std::cout << "Scanning Angle: " << sweep*180/_PI << '\n';
+          } else {
+            weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
         }
         else
           weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       }
       else {
-        if(_sweep_mode) {
+        if(_sweep_mode && !_initial_message) {
           double sweep = ((clock() - _start)/CLOCKS_PER_SEC)*_PI/180*sweep_speed;
-          weight = std::exp(0.085 * (4 - _antenna_number) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
-          if (v < 1)
-          std::cout << "Scanning Angle: " << -sweep*180/_PI << '\n';
+          if (-sweep > _phase ) {
+            weight = std::exp(0.085 * (4 - _antenna_number) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (v < 1)
+            std::cout << "Scanning Angle: " << -sweep*180/_PI << '\n';
+          } else {
+            weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
         }
         else
           weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
