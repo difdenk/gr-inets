@@ -30,7 +30,6 @@ namespace gr {
     class t_control_tx_cc_impl : public t_control_tx_cc
     {
      private:
-      // Nothing to declare in this block.
       int _develop_mode;
       int _block_id;
       int _record_on;
@@ -59,7 +58,6 @@ namespace gr {
       void set_phase(pmt::pmt_t phase_in);
       void shift_the_phase(gr_complex &temp);
 
-      // Where all the action really happens
       void forecast (int noutput_items, gr_vector_int &ninput_items_required);
 
       int general_work(int noutput_items,

@@ -137,7 +137,6 @@ namespace gr {
     void
     t_control_tx_cc_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     {
-      /* <+forecast+> e.g. ninput_items_required[0] = noutput_items */
       ninput_items_required[0] = noutput_items;
     }
 
@@ -178,7 +177,7 @@ namespace gr {
         double min_time_diff = pmt::to_double(_packet_len_tag.value) / _bps; //Max packet len [bit] / bit rate
         // double min_time_diff = (1000 * 8.0) / _bps; //Max packet len [bit] / bit rate
         // Ensure that frames are not overlap each other
-//        if((tx_time - _last_tx_time) < (min_time_diff + _t_pretx_interval_s)) {
+//       if((tx_time - _last_tx_time) < (min_time_diff + _t_pretx_interval_s)) {
 //          tx_time = _last_tx_time + min_time_diff;
 //          if(_develop_mode)
 //            std::cout << "t_control ID " << _block_id << " in time packet" << std::endl;
@@ -196,9 +195,13 @@ namespace gr {
           std::cout << "Time difference: " << tx_time - time_sum << '\n';
         }
       }
+
         // question 1: why add 0.05?
         //std::cout << "elapsed time: " << elapsed_time() << '\n';
-        uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.99);
+
+
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time-3.9);
+
         // the value of the tag is a tuple
         const pmt::pmt_t time_value = pmt::make_tuple(
           pmt::from_uint64(now.get_full_secs()),
@@ -211,9 +214,6 @@ namespace gr {
           ofs << t.tv_sec << " " << t.tv_usec << "\n";
           ofs.close();
         }
-       /*
-         JUA parketizer code starts
-       */
       }
       // Do <+signal processing+>
       // Tell runtime system how many input items we consumed on
@@ -300,24 +300,24 @@ namespace gr {
       std::complex<double> temp1(magn, arg);
       std::complex<double> weight;
       double sweep_speed = _sweep_mode;
-      if (_phase >= 0) {
-        if(_sweep_mode && !_initial_message) {
+      if (_phase >= 0) { // check if the desired direction is to the left or right
+        if(_sweep_mode && !_initial_message) { // to enter sweeping mode wait until the first message arrives
           double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
-          if (sweep < _phase) {
+          if (sweep < _phase) { // sweep until the the phase value provided by the user
             weight = std::exp(0.085 * (_antenna_number - 1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             if (v < 1)
             std::cout << "Scanning Angle: " << sweep*180/_PI << '\n';
-          } else {
+          } else { // stop sweeping at the limit
             weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             if (_first == true && _antenna_number == 1)
               std::cout << "Scanning Angle: " << _phase*180/_PI << '\n';
               _first = false;
           }
         }
-        else
+        else // sweeping mode is disabled
           weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       }
-      else {
+      else { // it is right
         if(_sweep_mode && !_initial_message) {
           double sweep = ((clock() - _start)/CLOCKS_PER_SEC)*_PI/180*sweep_speed;
           if (-sweep > _phase ) {
@@ -334,7 +334,7 @@ namespace gr {
         else
           weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       }
-      temp = temp1 * weight;
+      temp = temp1 * weight; // change the block output according to the given weights
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "the weight of antenna " << weight << '\n';
