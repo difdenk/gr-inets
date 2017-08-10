@@ -291,21 +291,21 @@ namespace gr {
       std::complex<double> temp1(magn, arg);
       std::complex<double> weight;
       double sweep_speed = _sweep_mode;
-      if (_phase >= 0) {
-        if(_sweep_mode && !_initial_message) {
+      if (_phase >= 0) { // check if the desired direction is to the left or right
+        if(_sweep_mode && !_initial_message) { // to enter sweeping mode wait until the first message arrives
           double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
-          if (sweep < _phase) {
+          if (sweep < _phase) { // sweep until the the phase value provided by the user
             weight = std::exp(0.085 * (_antenna_number - 1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             if (v < 1)
             std::cout << "Scanning Angle: " << sweep*180/_PI << '\n';
-          } else {
+          } else { // stop sweeping at the limit
             weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
           }
         }
-        else
+        else // sweeping mode is disabled
           weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       }
-      else {
+      else { // it is right
         if(_sweep_mode && !_initial_message) {
           double sweep = ((clock() - _start)/CLOCKS_PER_SEC)*_PI/180*sweep_speed;
           if (-sweep > _phase ) {
@@ -319,7 +319,7 @@ namespace gr {
         else
           weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
       }
-      temp = temp1 * weight;
+      temp = temp1 * weight; // change the block output according to the given weights
       if (_develop_mode) {
         if (v < 1) {
           std::cout << "the weight of antenna " << weight << '\n';
