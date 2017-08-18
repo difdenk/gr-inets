@@ -96,6 +96,7 @@ install(FILES
     parameter_list.h
     antenna_array_controller.h
     mux.h
-    direction_mapper.h DESTINATION include/inets
+    direction_mapper.h
+    bits_to_msg.h DESTINATION include/inets
 
 )

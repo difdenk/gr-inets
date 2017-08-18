@@ -110,10 +110,10 @@ namespace gr {
         //the next commands are all timed
         _dev->set_command_time(cmd_time);
         //tune channel 0 and channel 1
-        _dev->set_tx_freq(3.76e9, 0); // Channel 0
-        _dev->set_tx_freq(3.76e9, 1); // Channel 1
-        _dev->set_tx_freq(3.76e9, 2); // Channel 2
-        _dev->set_tx_freq(3.76e9, 3); // Channel 3
+        _dev->set_tx_freq(_frequency, 0); // Channel 0
+        _dev->set_tx_freq(_frequency, 1); // Channel 1
+        _dev->set_tx_freq(_frequency, 2); // Channel 2
+        _dev->set_tx_freq(_frequency, 3); // Channel 3
         //end timed commands
         _dev->clear_command_time();
         uhd::time_spec_t usrp_time = _dev->get_time_now();
