@@ -91,6 +91,12 @@
       <key>3</key>
       <opt>hide:part</opt>
     </option>
+
+    <option>
+      <name>Fixed 8 bit Pseudorandom Pattern </name>
+      <key>4</key>
+      <opt>hide:part</opt>
+    </option>
   </param>
 
   <param>
