@@ -34,6 +34,12 @@
       <opt>hide:none</opt>
       <opt>hide_control:none</opt>
     </option>
+    <option>
+      <name>Bit Error Rate</name>
+      <key>3</key>
+      <opt>hide:none</opt>
+      <opt>hide_control:none</opt>
+    </option>
   </param>
 
   <param>
