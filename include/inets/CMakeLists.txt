@@ -97,6 +97,7 @@ install(FILES
     antenna_array_controller.h
     mux.h
     direction_mapper.h
-    bits_to_msg.h DESTINATION include/inets
+    bits_to_msg.h
+    PRBS_Gen.h DESTINATION include/inets
 
 )

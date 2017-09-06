@@ -1,7 +1,6 @@
-
 /* -*- c++ -*- */
 /*
- * Copyright 2016 <+YOU OR YOUR COMPANY+>.
+ * Copyright 2017 <+YOU OR YOUR COMPANY+>.
  *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,30 +18,31 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_INETS_ADDRESS_CHECK_IMPL_H
-#define INCLUDED_INETS_ADDRESS_CHECK_IMPL_H
+#ifndef INCLUDED_INETS_PRBS_GEN_IMPL_H
+#define INCLUDED_INETS_PRBS_GEN_IMPL_H
 
-#include <inets/address_check.h>
+#include <inets/PRBS_Gen.h>
 
 namespace gr {
   namespace inets {
 
-    class address_check_impl : public address_check
+    class PRBS_Gen_impl : public PRBS_Gen
     {
      private:
-      int _develop_mode;
-      int _block_id;
-      int _my_address;
-      int _apply_address_check;
-      void check_address(pmt::pmt_t frame_info);
+      std::vector<uint8_t> _reference;
+      std::vector<uint8_t> generate();
 
      public:
-      address_check_impl(int develop_mode, int block_id, int my_address);
-      ~address_check_impl();
+      PRBS_Gen_impl(int develop_mode);
+      ~PRBS_Gen_impl();
 
+      // Where all the action really happens
+      int work(int noutput_items,
+         gr_vector_const_void_star &input_items,
+         gr_vector_void_star &output_items);
     };
 
   } // namespace inets
 } // namespace gr
 
-#endif /* INCLUDED_INETS_ADDRESS_CHECK_IMPL_H */
+#endif /* INCLUDED_INETS_PRBS_GEN_IMPL_H */

@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# 
+#
 # Copyright 2017 <+YOU OR YOUR COMPANY+>.
-# 
+#
 # This is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this software; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
-# 
+#
 
 import os
 import sys
@@ -38,13 +38,13 @@ class sending(gr.hier_block2):
     """
     docstring for block sending
     """
-    def __init__(self, develop_mode=1, block_id=20, constellation=gnuradio.digital.constellation_qpsk().base(), preamble=[], samp_rate=4e6, sps=4, system_time_granularity_us=5, usrp_device_address="addr=10.0.0.6", center_frequency=400000000, interframe_interval_s=0.005, t_pretx_interval_s=0.05, file_name_extension_t_control="t1TXs", file_name_extension_pending="Tfr", record_on=1, name_with_timestamp=1, tx_gain=0):
+    def __init__(self, develop_mode=1, block_id=20, constellation=gnuradio.digital.constellation_qpsk().base(), preamble=[], samp_rate=4e6, sps=4, system_time_granularity_us=5, usrp_device_address="addr=10.0.0.6", center_frequency=400000000, interframe_interval_s=0.005, t_pretx_interval_s=0.05, file_name_extension_t_control="t1TXs", file_name_extension_pending="Tfr", record_on=1, name_with_timestamp=1, tx_gain=0, phase = 0, sweep_mode=0):
         gr.hier_block2.__init__(self,
             "sending",
             gr.io_signature(0, 0, 0),  # Input signature
             gr.io_signature(0, 0, 0)
         ) # Output signature
- 
+
         self.message_port_register_hier_in("in")
         self.message_port_register_hier_in("reconfig_in")
         self.message_port_register_hier_out("data_frame_out")
@@ -77,18 +77,20 @@ class sending(gr.hier_block2):
             record_on=record_on,
             name_with_timestamp=name_with_timestamp,
             tx_gain=tx_gain,
+            phase=phase,
+            sweep_mode=sweep_mode,
         )
         ##################################################
         # Connections
         ##################################################
-        self.msg_connect((self.send_frame_0, 'data_frame_out'), (self, 'data_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'ack_frame_out'), (self, 'ack_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'beacon_frame_out'), (self, 'beacon_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'rts_frame_out'), (self, 'rts_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'cts_frame_out'), (self, 'cts_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'ampdu_frame_out'), (self, 'ampdu_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'amsdu_frame_out'), (self, 'amsdu_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'unknown_frame_out'), (self, 'unknown_frame_out'))    
-        self.msg_connect((self.send_frame_0, 'rx_control_out'), (self, 'rx_control_out'))    
-        self.msg_connect((self, 'in'), (self.send_frame_0, 'in'))    
-        self.msg_connect((self, 'reconfig_in'), (self.send_frame_0, 'reconfig_in'))    
+        self.msg_connect((self.send_frame_0, 'data_frame_out'), (self, 'data_frame_out'))
+        self.msg_connect((self.send_frame_0, 'ack_frame_out'), (self, 'ack_frame_out'))
+        self.msg_connect((self.send_frame_0, 'beacon_frame_out'), (self, 'beacon_frame_out'))
+        self.msg_connect((self.send_frame_0, 'rts_frame_out'), (self, 'rts_frame_out'))
+        self.msg_connect((self.send_frame_0, 'cts_frame_out'), (self, 'cts_frame_out'))
+        self.msg_connect((self.send_frame_0, 'ampdu_frame_out'), (self, 'ampdu_frame_out'))
+        self.msg_connect((self.send_frame_0, 'amsdu_frame_out'), (self, 'amsdu_frame_out'))
+        self.msg_connect((self.send_frame_0, 'unknown_frame_out'), (self, 'unknown_frame_out'))
+        self.msg_connect((self.send_frame_0, 'rx_control_out'), (self, 'rx_control_out'))
+        self.msg_connect((self, 'in'), (self.send_frame_0, 'in'))
+        self.msg_connect((self, 'reconfig_in'), (self.send_frame_0, 'reconfig_in'))

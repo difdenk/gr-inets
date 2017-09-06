@@ -102,5 +102,6 @@ install(FILES
     inets_antenna_array_controller.xml
     inets_mux.xml
     inets_direction_mapper.xml
-    inets_bits_to_msg.xml DESTINATION share/gnuradio/grc/blocks
+    inets_bits_to_msg.xml
+    inets_PRBS_Gen.xml DESTINATION share/gnuradio/grc/blocks
 )

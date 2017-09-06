@@ -82,6 +82,7 @@
 #include "inets/mux.h"
 #include "inets/direction_mapper.h"
 #include "inets/bits_to_msg.h"
+#include "inets/PRBS_Gen.h"
 #include "inets/general_timeout.h"
 #include "inets/cogmac_ch_pool.h"
 #include "inets/frame_replicate.h"
@@ -108,6 +109,7 @@
 #include "inets/mux.h"
 #include "inets/direction_mapper.h"
 #include "inets/bits_to_msg.h"
+#include "inets/PRBS_Gen.h"
 %}
 %include "gnuradio/digital/constellation.h"
 
@@ -284,3 +286,6 @@ GR_SWIG_BLOCK_MAGIC2(inets, mux);
 GR_SWIG_BLOCK_MAGIC2(inets, direction_mapper);
 %include "inets/bits_to_msg.h"
 GR_SWIG_BLOCK_MAGIC2(inets, bits_to_msg);
+
+%include "inets/PRBS_Gen.h"
+GR_SWIG_BLOCK_MAGIC2(inets, PRBS_Gen);

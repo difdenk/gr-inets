@@ -4,7 +4,7 @@
   <key>inets_t_control_tx_cc</key>
   <category>inets_dmf_phy</category>
   <import>import inets</import>
-  <make>inets.t_control_tx_cc($develop_mode, $block_id, $bps, $t_pretx_interval_s, $record_on, $file_name_extension, $name_with_timestamp, $antenna_number, $frequency, $sweep_mode)</make>
+  <make>inets.t_control_tx_cc($develop_mode, $block_id, $bps, $t_pretx_interval_s, $record_on, $file_name_extension, $name_with_timestamp, $antenna_number, $frequency, $sweep_mode, $directional_mode)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
@@ -36,6 +36,26 @@
     <type>int</type>
   </param>
   <param>
+    <name>Directional Mode</name>
+    <key>directional_mode</key>
+    <value>directional_mode</value>
+    <type>enum</type>
+    <hide>$directional_mode.hide</hide>
+    <option>
+      <name>off</name>
+      <key>0</key>
+      <opt>hide:part</opt>
+      <opt>hide_control:all</opt>
+    </option>
+    <option>
+      <name>on</name>
+      <key>1</key>
+      <opt>hide:none</opt>
+      <opt>hide_control:none</opt>
+    </option>
+  </param>
+
+  <param>
     <name>bitrate</name>
     <key>bps</key>
     <value>constellation.bits_per_symbol() * (samp_rate / sps)</value>
@@ -58,6 +78,7 @@
     <key>sweep_mode</key>
     <value>sweep_mode</value>
     <type>float</type>
+    <hide>$directional_mode.hide_control</hide>
   </param>
 
   <param>
@@ -79,6 +100,7 @@
     <key>antenna_number</key>
     <value>antenna_number</value>
     <type>int</type>
+    <hide>$directional_mode.hide_control</hide>
     <option>
       <name>1</name>
       <key>1</key>

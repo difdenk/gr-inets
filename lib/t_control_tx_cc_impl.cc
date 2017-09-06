@@ -42,16 +42,16 @@ namespace gr {
   namespace inets {
 
     t_control_tx_cc::sptr
-    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency, double sweep_mode)
+    t_control_tx_cc::make(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency, double sweep_mode, bool directional_mode)
     {
       return gnuradio::get_initial_sptr
-        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp, antenna_number, frequency, sweep_mode));
+        (new t_control_tx_cc_impl(develop_mode, block_id, bps, t_pretx_interval_s, record_on, file_name_extension, name_with_timestamp, antenna_number, frequency, sweep_mode, directional_mode));
     }
 
     /*
      * The private constructor
      */
-    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency, double sweep_mode)
+    t_control_tx_cc_impl::t_control_tx_cc_impl(int develop_mode, int block_id, double bps, double t_pretx_interval_s, int record_on, std::string file_name_extension, int name_with_timestamp, int antenna_number, double frequency, double sweep_mode, bool directional_mode)
       : gr::block("t_control_tx_cc",
               gr::io_signature::make(1, 1, sizeof(gr_complex)),
               gr::io_signature::make(1, 1, sizeof(gr_complex))),
@@ -69,7 +69,8 @@ namespace gr {
         _sweep_mode(sweep_mode),
         _start(0),
         _initial_message(1),
-        _first(true)
+        _first(true),
+        _directional_mode(directional_mode)
     {
       if(_develop_mode)
         std::cout << "develop_mode of t_control_tx ID: " << _block_id << " is activated." << "and t_re is " << _t_pretx_interval_s << std::endl;
@@ -92,7 +93,7 @@ namespace gr {
       struct timeval ti;
       gettimeofday(&ti, NULL);
       double pc_clock = ti.tv_sec + ti.tv_usec/1000000.0;
-      if (antenna_number == 1) {
+      if (antenna_number == 1 && _directional_mode) {
         uhd::device_addr_t dev_addr;
         dev_addr["addr0"] = "192.168.10.2";
         dev_addr["addr1"] = "192.168.10.3";
@@ -151,9 +152,13 @@ namespace gr {
 
       for(int i = 0; i < noutput_items; i++)
       {
-        gr_complex temp = in[i];
-        shift_the_phase(temp);
-        out[i] = temp;
+        if (_directional_mode) {
+          gr_complex temp = in[i];
+          shift_the_phase(temp);
+          out[i] = temp;
+        } else {
+          out[i] = in[i];
+        }
       }
 
       std::vector <tag_t> tags;
@@ -300,39 +305,113 @@ namespace gr {
       std::complex<double> temp1(magn, arg);
       std::complex<double> weight;
       double sweep_speed = _sweep_mode;
+      double calibration1 = 0.257; // 81 degrees phase offset
+      double calibration2 = 0.0523; // 20 degrees offset
+      double calibration3 = 0.107; // 42 degrees phase offset
       if (_phase >= 0) { // check if the desired direction is to the left or right
         if(_sweep_mode && !_initial_message) { // to enter sweeping mode wait until the first message arrives
           double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
           if (sweep < _phase) { // sweep until the the phase value provided by the user
-            weight = std::exp(0.085 * (_antenna_number - 1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (_antenna_number == 1) {
+              weight = std::exp(0.085 * (0) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 2) {
+              weight = std::exp(0.085 * (1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 3) {
+              weight = std::exp(0.085 * (2) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else
+              weight = std::exp(0.085 * (3) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            //weight = std::exp(0.085 * (_antenna_number - 1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             if (v < 1)
             std::cout << "Scanning Angle: " << sweep*180/_PI << '\n';
-          } else { // stop sweeping at the limit
-            weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
-            if (_first == true && _antenna_number == 1)
+          }
+          else { // stop sweeping at the limit
+            //weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (_antenna_number == 1) {
+              weight = std::exp(0.085 * (0) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 2) {
+              weight = std::exp(0.085 * (1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 3) {
+              weight = std::exp(0.085 * (2) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else
+              weight = std::exp(0.085 * (3) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (_first == true && _antenna_number == 1) {
               std::cout << "Scanning Angle: " << _phase*180/_PI << '\n';
               _first = false;
+            }
           }
         }
-        else // sweeping mode is disabled
-          weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+        else { // sweeping mode is disabled
+          //weight = std::exp(0.085 * (_antenna_number - 1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          if (_antenna_number == 1) {
+            weight = std::exp(0.085 * (0) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
+          else if (_antenna_number == 2) {
+            weight = std::exp(0.085 * (1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
+          else if (_antenna_number == 3) {
+            weight = std::exp(0.085 * (2) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
+          else
+            weight = std::exp(0.085 * (3) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+        }
       }
       else { // it is right
         if(_sweep_mode && !_initial_message) {
           double sweep = ((clock() - _start)/CLOCKS_PER_SEC)*_PI/180*sweep_speed;
           if (-sweep > _phase ) {
-            weight = std::exp(0.085 * (4 - _antenna_number) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            //weight = std::exp(0.085 * (4 - _antenna_number) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (_antenna_number == 1) {
+              weight = std::exp(0.085 * (3) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 2) {
+              weight = std::exp(0.085 * (2) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 3) {
+              weight = std::exp(0.085 * (1) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else
+              weight = std::exp(0.085 * (0) * sin(-sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             if (v < 1)
             std::cout << "Scanning Angle: " << -sweep*180/_PI << '\n';
-          } else {
-            weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
-            if (_first == true && _antenna_number == 1)
+          }
+          else {
+            //weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            if (_antenna_number == 1) {
+              weight = std::exp(0.085 * (3) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 2) {
+              weight = std::exp(0.085 * (2) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else if (_antenna_number == 3) {
+              weight = std::exp(0.085 * (1) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            }
+            else
+              weight = std::exp(0.085 * (0) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
+          if (_first == true && _antenna_number == 1) {
               std::cout << "Scanning Angle: " << _phase*180/_PI << '\n';
               _first = false;
           }
         }
-        else
-          weight = std::exp(0.085 * (4 - _antenna_number) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+        else { //sweeping is disabled
+          if (_antenna_number == 1) {
+            weight = std::exp(0.085 * (3) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
+          else if (_antenna_number == 2) {
+            weight = std::exp(0.085 * (2) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
+          else if (_antenna_number == 3) {
+            weight = std::exp(0.085 * (1) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+          }
+          else
+            weight = std::exp(0.085 * (0) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+        }
       }
       temp = temp1 * weight; // change the block output according to the given weights
       if (_develop_mode) {

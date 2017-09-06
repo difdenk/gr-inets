@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -42,7 +42,7 @@ namespace gr {
       int _destination_address;
       int _ack_address;
       int _len_destination_address; // Bytes
-      int _source_address; 
+      int _source_address;
       int _len_source_address; // Bytes
       int _reserved_field_I;
       int _len_reserved_field_I; // Bytes
@@ -58,10 +58,12 @@ namespace gr {
       int _default_index;
       int _default_payload_length;
       int _internal_index;
+      float _snr;
       std::vector<unsigned int> _node_list;
       std::vector<unsigned int> _slot_list_ms;
-      boost::crc_optimal<32, 0x04C11DB7, 0xFFFFFFFF, 0xFFFFFFFF, true, true> _crc_impl; 
+      boost::crc_optimal<32, 0x04C11DB7, 0xFFFFFFFF, 0xFFFFFFFF, true, true> _crc_impl;
       pmt::pmt_t crc32_bb_calc(pmt::pmt_t msg);
+      void prepare_snr(pmt::pmt_t snr_in);
       void catagorization(pmt::pmt_t data_in);
       void reset_frame_index(pmt::pmt_t pmt_in);
       pmt::pmt_t data_frame_formation(pmt::pmt_t rx_payload);
@@ -85,5 +87,3 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_INETS_FRAMING_IMPL_H */
-
-

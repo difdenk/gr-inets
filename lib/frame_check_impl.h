@@ -43,7 +43,11 @@ namespace gr {
       std::vector<uint8_t> _reference_payload;
       int _error;
       int _success;
+      int _total_packets_received;
+      int _bad_packet;
+      int _good_packet;
       void ber_calculate(std::vector<unsigned char> payload_vector);
+      int _limit;
 
      public:
       frame_check_impl(int develop_mode, int block_id);

@@ -344,6 +344,24 @@
     <type>int</type>
     <hide>$default_framing_setting.hide</hide>
   </param>
+
+  <param>
+    <name>Enable snr_in</name>
+    <key>snr_in_h</key>
+    <type>enum</type>
+    <hide>part</hide>
+    <option>
+      <name>Off</name>
+      <key>1</key>
+      <opt>hide:part</opt>
+    </option>
+    <option>
+      <name>On</name>
+      <key>0</key>
+      <opt>hide:none</opt>
+    </option>
+  </param>
+
   <!-- Make one 'sink' node per input. Sub-nodes:
        * name (an identifier for the GUI)
        * type
@@ -353,6 +371,13 @@
     <name>data_in</name>
     <type>message</type>
     <optional>1</optional>
+  </sink>
+
+  <sink>
+    <name>snr_in</name>
+    <type>message</type>
+    <optional>1</optional>
+    <hide>$snr_in_h</hide>
   </sink>
 
   <sink>
