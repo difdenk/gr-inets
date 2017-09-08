@@ -54,7 +54,7 @@ namespace gr {
         _len_destination_address(len_destination_address), // Bytes
         _source_address(source_address),
         _len_source_address(len_source_address), // Bytes
-        _reserved_field_I(reserved_field_I),
+        _reserved_field_I(14.6),
         _len_reserved_field_I(len_reserved_field_I), // Bytes
         _reserved_field_II(reserved_field_II),
         _len_reserved_field_II(len_reserved_field_II), // Bytes
@@ -68,7 +68,7 @@ namespace gr {
         _default_payload(default_payload),
         _default_payload_length(default_payload_length),
         _internal_index(internal_index),
-        _snr(0)
+        _snr(31)
     {
       if(_develop_mode)
         std::cout << "develop_mode of framing ID: " << _block_id << " is activated." << std::endl;
@@ -377,7 +377,7 @@ namespace gr {
       if(pmt::is_dict(rx_data))
       {
         pmt::pmt_t meta = pmt::make_dict();
-        pmt::pmt_t not_found;
+        pmt::pmt_t not_found = pmt::from_long(3);
         // generate an ack frame
         int ack_address = pmt::to_long(pmt::dict_ref(rx_data, pmt::string_to_symbol("source_address"), not_found));
         //int src_address = pmt::to_long(pmt::dict_ref(rx_payload, pmt::string_to_symbol("destination_address"), not_found));
@@ -493,12 +493,12 @@ namespace gr {
       std::vector< unsigned char > vec_destination_address;
       std::vector< unsigned char > vec_source_address;
       std::vector< unsigned char > vec_transmission;
-      std::vector< unsigned char > vec_reserved_field_I;
+      std::vector< unsigned char > vec_reserved_field_I;// snr value
       std::vector< unsigned char > vec_reserved_field_II;
       std::vector< unsigned char > vec_payload_length;
-      std::vector< unsigned char > vec_snr;
+      //std::vector< unsigned char > vec_snr;
 
-      int snr = _snr;
+      //int snr = _snr;
 
         /*
         frame type (1 Bytes)
@@ -526,7 +526,7 @@ namespace gr {
       // Reserved field II
       intToByte(reserved_field_II, &vec_reserved_field_II, _len_reserved_field_II);
       // snr for directional transmission
-      intToByte(snr, &vec_snr, 4);
+      //intToByte(snr, &vec_snr, 2);
 
       //std::cout  << "Frame header length before frame type: " << frame_header->size() << std::endl;
       frame_header->insert(frame_header->end(), vec_frame_type.begin(), vec_frame_type.begin() + _len_frame_type);
@@ -544,7 +544,7 @@ namespace gr {
       frame_header->insert(frame_header->end(), vec_reserved_field_II.begin(), vec_reserved_field_II.begin() + _len_reserved_field_II);
       //std::cout  << "Frame header length after re2: " << frame_header->size() << std::endl;
       frame_header->insert(frame_header->end(), vec_payload_length.begin(), vec_payload_length.begin() + _len_payload_length);
-      frame_header->insert(frame_header->end(), vec_snr.begin(), vec_snr.begin() + 4);
+      //frame_header->insert(frame_header->end(), vec_snr.begin(), vec_snr.begin() + 2);
 
       pmt::pmt_t frame_info  = pmt::make_dict();
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("frame_type"), pmt::from_long(frame_type));
@@ -558,7 +558,7 @@ namespace gr {
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("header_length"), pmt::from_long(get_frame_header_length()));
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("address_check"),pmt::from_long(0));
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("good_frame"),pmt::from_long(0));
-      frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("snr"),pmt::from_long(snr));
+      //frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("snr"),pmt::from_long(snr));
       return frame_info;
     }
 
@@ -625,7 +625,7 @@ namespace gr {
         if (_develop_mode) {
           std::cout << "SNR: " << snr << '\n';
         }
-        float _snr = snr;
+        float _reserved_field_I = snr;
       } else {
         std::cout << "snr is not double." << '\n';
       }

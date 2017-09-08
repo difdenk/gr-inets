@@ -861,7 +861,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1543,7 +1543,7 @@
     </param>
     <param>
       <key>default_framing_setting</key>
-      <value>default</value>
+      <value>customized</value>
     </param>
     <param>
       <key>default_payload_length</key>

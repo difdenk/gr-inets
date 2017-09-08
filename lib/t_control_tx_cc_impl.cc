@@ -190,15 +190,15 @@ namespace gr {
         //std::cout << "tx time = " << std::fixed << tx_time << std::endl;
         // update the tx_time to the current packet
         _last_tx_time = tx_time;
-        if (_antenna_number == 1) {
-        uhd::time_spec_t usrp_time = _dev->get_time_now();
-        int usrp_time_full = usrp_time.get_full_secs();
-        double usrp_time_frac = usrp_time.get_frac_secs();
-        double time_sum = usrp_time_full + usrp_time_frac;
-        if (_develop_mode) {
-          std::cout << "USRP Time: "<< time_sum << '\n';
-          std::cout << "Time difference: " << tx_time - time_sum << '\n';
-        }
+        if (_antenna_number == 1 && _directional_mode) {
+          uhd::time_spec_t usrp_time = _dev->get_time_now();
+          int usrp_time_full = usrp_time.get_full_secs();
+          double usrp_time_frac = usrp_time.get_frac_secs();
+          double time_sum = usrp_time_full + usrp_time_frac;
+          if (_develop_mode) {
+            std::cout << "USRP Time: "<< time_sum << '\n';
+            std::cout << "Time difference: " << tx_time - time_sum << '\n';
+          }
       }
 
         // question 1: why add 0.05?
@@ -212,7 +212,10 @@ namespace gr {
           pmt::from_uint64(now.get_full_secs()),
           pmt::from_double(now.get_frac_secs())
         );
-        add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
+        //pmt::print(time_value);
+        if (_directional_mode) {
+          add_item_tag(0, _packet_len_tag.offset, time_key, time_value);
+        }
         if(_record_on)
         {
           std::ofstream ofs (_file_name_str.c_str(), std::ofstream::app);

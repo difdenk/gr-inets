@@ -1233,11 +1233,11 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>file_name_extension</key>
-      <value>file_name_extension_t_control</value>
+      <value>0</value>
     </param>
     <param>
       <key>frequency</key>
@@ -1269,7 +1269,7 @@
     </param>
     <param>
       <key>record_on</key>
-      <value>record_on</value>
+      <value>0</value>
     </param>
     <param>
       <key>sweep_mode</key>
@@ -1285,7 +1285,7 @@
     </param>
     <param>
       <key>name_with_timestamp</key>
-      <value>name_with_timestamp</value>
+      <value>0</value>
     </param>
   </block>
   <block>
@@ -2001,7 +2001,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>0</value>
+      <value>10</value>
     </param>
   </block>
   <block>
@@ -2664,7 +2664,7 @@
     </param>
     <param>
       <key>dev_addr</key>
-      <value>"addr0=192.168.10.2"</value>
+      <value>usrp_device_address</value>
     </param>
     <param>
       <key>dev_args</key>
@@ -2696,7 +2696,7 @@
     </param>
     <param>
       <key>sd_spec0</key>
-      <value>A:0 B:0</value>
+      <value></value>
     </param>
     <param>
       <key>time_source0</key>
@@ -2910,7 +2910,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>"addr=192.168.10.2"</value>
+      <value>"addr=192.168.10.4"</value>
     </param>
   </block>
   <connection>
