@@ -98,6 +98,7 @@ install(FILES
     mux.h
     direction_mapper.h
     bits_to_msg.h
-    PRBS_Gen.h DESTINATION include/inets
+    PRBS_Gen.h
+    direction_finder.h DESTINATION include/inets
 
 )

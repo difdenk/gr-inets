@@ -147,6 +147,14 @@
       <opt>hide_beacon:all</opt>
       <opt>hide_ampdu:all</opt>
     </option>
+    <option>
+      <name>Beacon Reply frame</name>
+      <key>10</key>
+      <opt>hide_data:all</opt>
+      <opt>hide_ack:all</opt>
+      <opt>hide_beacon:all</opt>
+      <opt>hide_ampdu:all</opt>
+    </option>
   </param>
 
   <param>
@@ -362,6 +370,23 @@
     </option>
   </param>
 
+  <param>
+    <name>Enable angle_in</name>
+    <key>angle_in_h</key>
+    <type>enum</type>
+    <hide>part</hide>
+    <option>
+      <name>Off</name>
+      <key>1</key>
+      <opt>hide:part</opt>
+    </option>
+    <option>
+      <name>On</name>
+      <key>0</key>
+      <opt>hide:none</opt>
+    </option>
+  </param>
+
   <!-- Make one 'sink' node per input. Sub-nodes:
        * name (an identifier for the GUI)
        * type
@@ -378,6 +403,13 @@
     <type>message</type>
     <optional>1</optional>
     <hide>$snr_in_h</hide>
+  </sink>
+
+  <sink>
+    <name>angle_in</name>
+    <type>message</type>
+    <optional>1</optional>
+    <hide>$angle_in_h</hide>
   </sink>
 
   <sink>

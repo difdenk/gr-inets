@@ -96,12 +96,12 @@ namespace gr {
            * frame type check
            */
           int frame_type = static_cast<unsigned>(frame_array[0]);
-          if(frame_type <= 5 && frame_type > 0)
+          if((frame_type <= 5 && frame_type > 0) || frame_type == 10)
           {
             frame_info = frame_decompose(frame_pmt, frame_type);
-	    if(pmt::to_long(pmt::dict_ref(frame_info, pmt::string_to_symbol("self_address_check"), not_found)))
+	          if(pmt::to_long(pmt::dict_ref(frame_info, pmt::string_to_symbol("self_address_check"), not_found)))
               message_port_pub(pmt::mp("frame_info_out"), frame_info);
-	    else
+	          else
               if(_develop_mode == 1)
                 std::cout << "no output self frame." << std::endl;
           }

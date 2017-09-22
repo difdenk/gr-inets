@@ -54,9 +54,9 @@ namespace gr {
         _len_destination_address(len_destination_address), // Bytes
         _source_address(source_address),
         _len_source_address(len_source_address), // Bytes
-        _reserved_field_I(14.6),
+        //_reserved_field_I(31),
         _len_reserved_field_I(len_reserved_field_I), // Bytes
-        _reserved_field_II(reserved_field_II),
+        //_reserved_field_II(reserved_field_II),
         _len_reserved_field_II(len_reserved_field_II), // Bytes
         _len_payload_length(len_payload_length), // Bytes
         _increase_index(increase_index),
@@ -68,7 +68,8 @@ namespace gr {
         _default_payload(default_payload),
         _default_payload_length(default_payload_length),
         _internal_index(internal_index),
-        _snr(31)
+        _virgin(true)
+        //_snr(31)
     {
       if(_develop_mode)
         std::cout << "develop_mode of framing ID: " << _block_id << " is activated." << std::endl;
@@ -76,6 +77,8 @@ namespace gr {
       set_msg_handler(pmt::mp("data_in"), boost::bind(&framing_impl::catagorization, this, _1 ));
       message_port_register_in(pmt::mp("snr_in"));
       set_msg_handler(pmt::mp("snr_in"), boost::bind(&framing_impl::prepare_snr, this, _1 ));
+      message_port_register_in(pmt::mp("angle_in"));
+      set_msg_handler(pmt::mp("angle_in"), boost::bind(&framing_impl::angle_in, this, _1 ));
       message_port_register_in(pmt::mp("reset_index"));
       set_msg_handler(pmt::mp("reset_index"), boost::bind(&framing_impl::reset_frame_index, this, _1 ));
       message_port_register_out(pmt::mp("frame_out"));
@@ -134,6 +137,8 @@ namespace gr {
         }
         else if(_frame_type == 9)
           generated_frame = amsdu_subframe_formation(data_in);
+        else if(_frame_type == 10)
+          generated_frame = beacon_reply_frame_formation(data_in);
         else
           std::cout << "Error. wrong frame type in framing ID: " << _block_id << ". please check your connections." << std::endl;
         if(pmt::dict_has_key(generated_frame, pmt::string_to_symbol("frame_pmt")))
@@ -377,7 +382,7 @@ namespace gr {
       if(pmt::is_dict(rx_data))
       {
         pmt::pmt_t meta = pmt::make_dict();
-        pmt::pmt_t not_found = pmt::from_long(3);
+        pmt::pmt_t not_found = pmt::from_long(1);
         // generate an ack frame
         int ack_address = pmt::to_long(pmt::dict_ref(rx_data, pmt::string_to_symbol("source_address"), not_found));
         //int src_address = pmt::to_long(pmt::dict_ref(rx_payload, pmt::string_to_symbol("destination_address"), not_found));
@@ -409,6 +414,58 @@ namespace gr {
         gettimeofday(&t, NULL);
         double current_time = t.tv_sec - double(int(t.tv_sec/10000)*10000) + t.tv_usec / 1000000.0;
         std::cout << "framing ID: " << _block_id << " ACK frame is generated at time " << current_time << " s" << std::endl;
+      }
+      return frame_info;
+    }
+
+    pmt::pmt_t
+    framing_impl::beacon_reply_frame_formation(pmt::pmt_t rx_data)
+    {
+      if(_develop_mode)
+      {
+        std::cout << "+++ Framing ID: " << _block_id << " ack frame +++" << std::endl;
+      }
+      /*
+       * Generate an ack frame
+       */
+      pmt::pmt_t frame_info;
+      pmt::pmt_t frame_after_crc;
+      if(pmt::is_dict(rx_data))
+      {
+        pmt::pmt_t meta = pmt::make_dict();
+        pmt::pmt_t not_found = pmt::from_long(7);
+        // generate an ack frame
+        int angle = pmt::to_double(pmt::dict_ref(rx_data, pmt::string_to_symbol("reserved_field_II"), not_found));
+        int ack_address = pmt::to_long(pmt::dict_ref(rx_data, pmt::string_to_symbol("source_address"), not_found));
+        //int src_address = pmt::to_long(pmt::dict_ref(rx_payload, pmt::string_to_symbol("destination_address"), not_found));
+        int ack_index = pmt::to_long(pmt::dict_ref(rx_data, pmt::string_to_symbol("frame_index"), not_found));
+        int ack_num_transmission = pmt::to_long(pmt::dict_ref(rx_data, pmt::string_to_symbol("num_transmission"), not_found));
+        std::vector<unsigned char> frame_header;
+        frame_info = frame_header_formation(&frame_header, 10, ack_index, ack_address, _source_address, _reserved_field_I, angle, 0, ack_num_transmission);
+        std::vector<unsigned char> frame;
+        frame.insert(frame.end(), frame_header.begin(), frame_header.end());
+        if(_develop_mode)
+          std::cout << "frame header, length " << frame.size() << std::endl;
+        // crc
+        // crc32_bb_calc(&frame);
+        // change frame to pmt::pmt_t
+        pmt::pmt_t frame_before_crc_u8vector = pmt::init_u8vector(frame.size(), frame);
+        pmt::pmt_t frame_before_crc = pmt::cons(meta, frame_before_crc_u8vector);
+        pmt::pmt_t frame_after_crc = crc32_bb_calc(frame_before_crc);
+        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("frame_pmt"), frame_after_crc);
+        // std::vector<unsigned char> frame_after_crc_vector = pmt::u8vector_elements(pmt::cdr(frame_after_crc));
+        // if(_develop_mode)
+          // std::cout << "ack frame with crc (no payload), length " << frame_after_crc_vector.size() << std::endl;
+      }
+      else
+        std::cout << "Error: pmt is not a dict, cannot generate an ack frame. please check your connections." << std::endl;
+      message_port_pub(pmt::mp("frame_pmt_out"), frame_after_crc);
+      if(_develop_mode == 2)
+      {
+        struct timeval t;
+        gettimeofday(&t, NULL);
+        double current_time = t.tv_sec - double(int(t.tv_sec/10000)*10000) + t.tv_usec / 1000000.0;
+        std::cout << "framing ID: " << _block_id << " beacon reply frame is generated at time " << current_time << " s" << std::endl;
       }
       return frame_info;
     }
@@ -494,7 +551,7 @@ namespace gr {
       std::vector< unsigned char > vec_source_address;
       std::vector< unsigned char > vec_transmission;
       std::vector< unsigned char > vec_reserved_field_I;// snr value
-      std::vector< unsigned char > vec_reserved_field_II;
+      std::vector< unsigned char > vec_reserved_field_II; // angle value
       std::vector< unsigned char > vec_payload_length;
       //std::vector< unsigned char > vec_snr;
 
@@ -620,15 +677,33 @@ namespace gr {
     }
 
     void framing_impl::prepare_snr(pmt::pmt_t snr_in) {
+      _virgin = false;
       if (pmt::to_double(snr_in)) {
         float snr = pmt::to_double(snr_in);
         if (_develop_mode) {
           std::cout << "SNR: " << snr << '\n';
         }
-        float _reserved_field_I = snr;
+        if (!_virgin && _frame_type == 10) {
+          _reserved_field_I = snr;
+        }
+        //std::cout << "SNR: " << _reserved_field_I << '\n';
       } else {
         std::cout << "snr is not double." << '\n';
       }
+    }
+
+    void framing_impl::angle_in(pmt::pmt_t angle_in) {
+      if (pmt::to_double(angle_in)) {
+        double angle = pmt::to_double(angle_in);
+        if (_develop_mode) {
+          std::cout << "Angle: " << angle << '\n';
+        }
+        if (_frame_type == 3 || _frame_type == 10) {
+          _reserved_field_II = angle;
+        }
+      }
+      else
+        std::cout << "Angle is not double" << '\n';
     }
 
   } /* namespace inets */

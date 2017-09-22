@@ -26,7 +26,7 @@ install(FILES
     inets_baseband_derotation.xml
     inets_stop_and_wait_arq.xml
     inets_rrrm.xml
-    inets_per_logger.xml 
+    inets_per_logger.xml
     inets_rssi.xml
     inets_framing_py_v1.xml
     inets_exponential_backoff_cpp.xml
@@ -103,5 +103,6 @@ install(FILES
     inets_mux.xml
     inets_direction_mapper.xml
     inets_bits_to_msg.xml
-    inets_PRBS_Gen.xml DESTINATION share/gnuradio/grc/blocks
+    inets_PRBS_Gen.xml
+    inets_direction_finder.xml DESTINATION share/gnuradio/grc/blocks
 )
