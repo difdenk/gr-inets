@@ -54,9 +54,9 @@ namespace gr {
         _len_destination_address(len_destination_address), // Bytes
         _source_address(source_address),
         _len_source_address(len_source_address), // Bytes
-        //_reserved_field_I(31),
+        _reserved_field_I(0),
         _len_reserved_field_I(len_reserved_field_I), // Bytes
-        //_reserved_field_II(reserved_field_II),
+        _reserved_field_II(0),
         _len_reserved_field_II(len_reserved_field_II), // Bytes
         _len_payload_length(len_payload_length), // Bytes
         _increase_index(increase_index),

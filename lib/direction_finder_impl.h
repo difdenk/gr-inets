@@ -22,6 +22,8 @@
 #define INCLUDED_INETS_DIRECTION_FINDER_IMPL_H
 
 #include <inets/direction_finder.h>
+#include <vector>
+#include <algorithm>
 
 namespace gr {
   namespace inets {
@@ -33,6 +35,12 @@ namespace gr {
        double _update_interval;
        double _timeout_value;
        int _destination_address;
+       pmt::pmt_t _best_direction;
+       std::vector<int> snr_values;
+       std::vector<int> angle_values;
+       std::vector<int>::iterator _biggest;
+       int find_best_direction();
+       void sweep_done(pmt::pmt_t sweep_done);
        void generate_node_table(pmt::pmt_t beacon_reply_in);
 
      public:

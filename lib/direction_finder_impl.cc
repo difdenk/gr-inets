@@ -24,6 +24,9 @@
 
 #include <gnuradio/io_signature.h>
 #include "direction_finder_impl.h"
+#include <vector>
+#include <algorithm>
+#include <iterator>
 
 namespace gr {
   namespace inets {
@@ -51,7 +54,9 @@ namespace gr {
         std::cout << "develop_mode of Direction mapper is activated." << '\n';
       message_port_register_out(pmt::mp("best_direction_out"));
       message_port_register_in(pmt::mp("beacon_reply_in"));
+      message_port_register_in(pmt::mp("sweep_done_in"));
       set_msg_handler(pmt::mp("beacon_reply_in"), boost::bind(&direction_finder_impl::generate_node_table, this, _1));
+      set_msg_handler(pmt::mp("sweep_done_in"), boost::bind(&direction_finder_impl::sweep_done, this, _1));
     }
 
     /*
@@ -62,13 +67,45 @@ namespace gr {
     }
 
     void direction_finder_impl::generate_node_table(pmt::pmt_t beacon_reply_in) {
+      int update_interval = _update_interval;
+      int timeout_value = _timeout_value;
       pmt::pmt_t not_found = pmt::from_long(7);
       int received_frame_address = pmt::to_long(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("source_address"), not_found));
       int snr = pmt::to_long(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       int angle = pmt::to_long(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_II"), not_found));
-      std::cout << "Incoming node address: " << received_frame_address <<'\n';
-      std::cout << "SNR: " << snr <<'\n';
-      std::cout << "Direction of the destined node : " << angle <<'\n';
+      if (_develop_mode) {
+        std::cout << "Incoming node address: " << received_frame_address <<'\n';
+        std::cout << "SNR: " << snr <<'\n';
+        std::cout << "Direction of the destined node : " << angle <<'\n';
+      }
+      if (_destination_address = received_frame_address) {
+        snr_values.push_back(snr);
+        angle_values.push_back(angle);
+        if (snr_values.size()%update_interval == 0) {
+          int best_direction = find_best_direction();
+          _best_direction = pmt::from_long(best_direction);
+          std::cout << "best_direction:" << best_direction << '\n';
+        }
+        if (snr_values.size() >= timeout_value) {
+          snr_values.pop_back();
+          angle_values.pop_back();
+        }
+      }
+    }
+
+    int direction_finder_impl::find_best_direction(){
+      _biggest = std::max_element(snr_values.begin(), snr_values.end());
+      int snr_max = *_biggest;
+      if (_develop_mode) {
+        std::cout << "SNR Max: "<< snr_max << '\n';
+      }
+      int index = std::distance(snr_values.begin(), _biggest);
+      int corresponding_angle = angle_values[index];
+      return corresponding_angle;
+    }
+
+    void direction_finder_impl::sweep_done(pmt::pmt_t sweep_done){
+      message_port_pub(pmt::mp("best_direction_out"), _best_direction);
     }
 
   } /* namespace inets */

@@ -55,19 +55,7 @@ namespace gr {
       message_port_register_out(pmt::mp("phase_out"));
       message_port_register_in(pmt::mp("frame_in"));
       set_msg_handler(pmt::mp("frame_in"), boost::bind(&direction_mapper_impl::accept_frame, this, _1));
-      pmt::pmt_t phase_key1 = pmt::string_to_symbol("phase_key1");
-      pmt::pmt_t phase_key2 = pmt::string_to_symbol("phase_key2");
-      pmt::pmt_t phase_key3 = pmt::string_to_symbol("phase_key3");
-      pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
-      pmt::pmt_t phase_value1 = pmt::from_double(_phase_1);
-      pmt::pmt_t phase_value2 = pmt::from_double(_phase_2);
-      pmt::pmt_t phase_value3 = pmt::from_double(_phase_3);
-      pmt::pmt_t phase_value4 = pmt::from_double(_phase_4);
       _phase_values = pmt::make_dict();
-      _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
-      _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
-      _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
-      _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
     }
 
     /*
@@ -77,10 +65,40 @@ namespace gr {
     {
     }
 
-    void direction_mapper_impl::accept_frame(pmt::pmt_t trigger){
-      message_port_pub(pmt::mp("phase_out"), _phase_values);
+    void direction_mapper_impl::accept_frame(pmt::pmt_t trigger) {
+      pmt::pmt_t phase_key1 = pmt::string_to_symbol("phase_key1");
+      pmt::pmt_t phase_key2 = pmt::string_to_symbol("phase_key2");
+      pmt::pmt_t phase_key3 = pmt::string_to_symbol("phase_key3");
+      pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
+      if (pmt::is_number(trigger)) {
+        int best_direction = pmt::to_long(trigger);
+        pmt::pmt_t phase_value1 = pmt::from_double(best_direction*_PI/180);
+        pmt::pmt_t phase_value2 = pmt::from_double(best_direction*_PI/180);
+        pmt::pmt_t phase_value3 = pmt::from_double(best_direction*_PI/180);
+        pmt::pmt_t phase_value4 = pmt::from_double(best_direction*_PI/180);
+        _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
+        _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
+        _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
+        _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
+        message_port_pub(pmt::mp("phase_out"), _phase_values);
+        if (_develop_mode) {
+          std::cout << "best direction sent" << '\n';
+        }
+      }
+      else {
+        pmt::pmt_t phase_value1 = pmt::from_double(_phase_1);
+        pmt::pmt_t phase_value2 = pmt::from_double(_phase_2);
+        pmt::pmt_t phase_value3 = pmt::from_double(_phase_3);
+        pmt::pmt_t phase_value4 = pmt::from_double(_phase_4);
+        _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
+        _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
+        _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
+        _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
+        message_port_pub(pmt::mp("phase_out"), _phase_values);
+        if (_develop_mode) {
+          std::cout << "default phase sent" << '\n';
+        }
+      }
     }
-
-
   } /* namespace inets */
 } /* namespace gr */

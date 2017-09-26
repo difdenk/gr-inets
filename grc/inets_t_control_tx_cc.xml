@@ -151,7 +151,12 @@
     <name>out</name>
     <type>complex</type>
   </source>
-  
+  <source>
+    <name>sweep_finished</name>
+    <type>message</type>
+    <optional>1</optional>
+  </source>
+
   <source>
     <name>direction_out</name>
     <type>message</type>
