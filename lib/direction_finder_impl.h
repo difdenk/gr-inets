@@ -35,6 +35,7 @@ namespace gr {
        double _update_interval;
        double _timeout_value;
        int _destination_address;
+       int _virgin;
        pmt::pmt_t _best_direction;
        std::vector<int> snr_values;
        std::vector<int> angle_values;

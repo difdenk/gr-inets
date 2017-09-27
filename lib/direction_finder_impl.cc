@@ -49,6 +49,7 @@ namespace gr {
               _update_interval(update_interval),
               _timeout_value(timeout_value),
               _destination_address(destination_address)
+              //_virgin(true)
     {
       if(develop_mode)
         std::cout << "develop_mode of Direction mapper is activated." << '\n';
@@ -67,6 +68,7 @@ namespace gr {
     }
 
     void direction_finder_impl::generate_node_table(pmt::pmt_t beacon_reply_in) {
+      _virgin = 7;
       int update_interval = _update_interval;
       int timeout_value = _timeout_value;
       pmt::pmt_t not_found = pmt::from_long(7);
@@ -84,7 +86,9 @@ namespace gr {
         if (snr_values.size()%update_interval == 0) {
           int best_direction = find_best_direction();
           _best_direction = pmt::from_long(best_direction);
-          std::cout << "best_direction:" << best_direction << '\n';
+          if (_develop_mode) {
+            std::cout << "best_direction:" << best_direction << '\n';
+          }
         }
         if (snr_values.size() >= timeout_value) {
           snr_values.pop_back();
@@ -105,7 +109,17 @@ namespace gr {
     }
 
     void direction_finder_impl::sweep_done(pmt::pmt_t sweep_done){
-      message_port_pub(pmt::mp("best_direction_out"), _best_direction);
+      if (_virgin = 7) {
+        message_port_pub(pmt::mp("best_direction_out"), _best_direction);
+        std::cout << "THE DESTINATION NODE IS AT ANGLE "<< _best_direction << '\n';
+        std::cout << "TRANSMITTER IS LOCKED TO ANGLE " << _best_direction << '\n';
+      }
+      else
+      {
+        std::cout << "SWEEP DONE BUT NO BEACON REPLY RECEIVED!" << '\n';
+        std::cout << "DIRECTING THE ANTTENNA TO BROADSIDE DIRECTION (0 DEGREES)" << '\n';
+        _best_direction = pmt::from_long(0);
+      }  
     }
 
   } /* namespace inets */

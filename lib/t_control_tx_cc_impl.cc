@@ -411,12 +411,12 @@ namespace gr {
               weight = std::exp(0.085 * (0) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             pmt::pmt_t direction = pmt::from_double(-_phase*180/_PI);
             message_port_pub(pmt::mp("direction_out"), direction);
-          }
-          if (_first == true && _antenna_number == 1) {
-            pmt::pmt_t sweep_finished = pmt::from_double(1);
-              std::cout << "Scanning Angle: " << _phase*180/_PI << '\n';
-              message_port_pub(pmt::mp("sweep_finished"), sweep_finished);
-              _first = false;
+            if (_first == true && _antenna_number == 1) {
+              pmt::pmt_t sweep_finished = pmt::from_double(1);
+                std::cout << "Scanning Angle: " << _phase*180/_PI << '\n';
+                message_port_pub(pmt::mp("sweep_finished"), sweep_finished);
+                _first = false;
+            }
           }
         }
         else { //sweeping is disabled
