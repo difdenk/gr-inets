@@ -44,9 +44,9 @@ namespace gr {
       int _len_destination_address; // Bytes
       int _source_address;
       int _len_source_address; // Bytes
-      int _reserved_field_I;
+      double _reserved_field_I;
       int _len_reserved_field_I; // Bytes
-      int _reserved_field_II;
+      double _reserved_field_II;
       int _len_reserved_field_II; // Bytes
       int _reserved_field_ampdu; // Bytes
       int _payload_length;
@@ -74,9 +74,10 @@ namespace gr {
       pmt::pmt_t beacon_reply_frame_formation(pmt::pmt_t rx_data);
       pmt::pmt_t ack_frame_formation(pmt::pmt_t rx_data);
       pmt::pmt_t beacon_frame_formation(pmt::pmt_t rx_beacon_info);
-      pmt::pmt_t frame_header_formation(std::vector<unsigned char> *frame_header, int frame_type, int frame_index, int destination_address, int source_address, int reserved_field_I, int reserved_field_II, int payload_length, int num_transmission);
+      pmt::pmt_t frame_header_formation(std::vector<unsigned char> *frame_header, int frame_type, int frame_index, int destination_address, int source_address, double reserved_field_I, double reserved_field_II, int payload_length, int num_transmission);
       pmt::pmt_t ampdu_delimiter_formation(std::vector<unsigned char> *delimiter, int reserved_field_I, int payload_length, int frame_type);
       void intToByte(int i, std::vector<unsigned char> *bytes, int size);
+      void doubleToByte(double a, std::vector<unsigned char> &bytes);
       void disp_vec(std::vector<unsigned char> vec);
       int get_frame_header_length();
 

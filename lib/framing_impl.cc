@@ -27,6 +27,8 @@
 #include <gnuradio/digital/crc32.h>
 #include <volk/volk.h>
 #include <boost/crc.hpp>
+#include <iostream>
+#include <iomanip>
 namespace gr {
   namespace inets {
 
@@ -55,9 +57,9 @@ namespace gr {
         _source_address(source_address),
         _len_source_address(len_source_address), // Bytes
         _reserved_field_I(0),
-        _len_reserved_field_I(len_reserved_field_I), // Bytes
+        _len_reserved_field_I(sizeof(double)), // Bytes
         _reserved_field_II(0),
-        _len_reserved_field_II(len_reserved_field_II), // Bytes
+        _len_reserved_field_II(sizeof(double)), // Bytes
         _len_payload_length(len_payload_length), // Bytes
         _increase_index(increase_index),
 	_len_num_transmission(len_num_transmission),
@@ -435,7 +437,7 @@ namespace gr {
         pmt::pmt_t meta = pmt::make_dict();
         pmt::pmt_t not_found = pmt::from_long(7);
         // generate an ack frame
-        int angle = pmt::to_double(pmt::dict_ref(rx_data, pmt::string_to_symbol("reserved_field_II"), not_found));
+        double angle = pmt::to_double(pmt::dict_ref(rx_data, pmt::string_to_symbol("reserved_field_II"), not_found));
         int ack_address = pmt::to_long(pmt::dict_ref(rx_data, pmt::string_to_symbol("source_address"), not_found));
         //int src_address = pmt::to_long(pmt::dict_ref(rx_payload, pmt::string_to_symbol("destination_address"), not_found));
         int ack_index = pmt::to_long(pmt::dict_ref(rx_data, pmt::string_to_symbol("frame_index"), not_found));
@@ -542,7 +544,7 @@ namespace gr {
     }
 
     pmt::pmt_t
-    framing_impl::frame_header_formation(std::vector<unsigned char> *frame_header, int frame_type, int frame_index, int destination_address, int source_address, int reserved_field_I, int reserved_field_II, int payload_length, int num_transmission)
+    framing_impl::frame_header_formation(std::vector<unsigned char> *frame_header, int frame_type, int frame_index, int destination_address, int source_address, double reserved_field_I, double reserved_field_II, int payload_length, int num_transmission)
     {
       std::vector< unsigned char > vec_frame_header;
       std::vector< unsigned char > vec_frame_type;
@@ -579,9 +581,9 @@ namespace gr {
       // num_transmission
       intToByte(num_transmission, &vec_transmission, _len_num_transmission);
       // Reserved field I
-      intToByte(reserved_field_I, &vec_reserved_field_I, _len_reserved_field_I);
+      doubleToByte(reserved_field_I, vec_reserved_field_I);
       // Reserved field II
-      intToByte(reserved_field_II, &vec_reserved_field_II, _len_reserved_field_II);
+      doubleToByte(reserved_field_II, vec_reserved_field_II);
       // snr for directional transmission
       //intToByte(snr, &vec_snr, 2);
 
@@ -609,8 +611,8 @@ namespace gr {
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("destination_address"), pmt::from_long(destination_address));
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("source_address"), pmt::from_long(source_address));
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("num_transmission"), pmt::from_long(1));
-      frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_I"), pmt::from_long(reserved_field_I));
-      frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_II"), pmt::from_long(reserved_field_II));
+      frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_I"), pmt::from_double(reserved_field_I));
+      frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_II"), pmt::from_double(reserved_field_II));
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("payload_length"), pmt::from_long(payload_length));
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("header_length"), pmt::from_long(get_frame_header_length()));
       frame_info  = pmt::dict_add(frame_info, pmt::string_to_symbol("address_check"),pmt::from_long(0));
@@ -636,6 +638,17 @@ namespace gr {
             bytes->insert(bytes->end(), (unsigned char) ((0xff000000 & i) >> 24));
           }
         }
+      }
+    }
+
+    void framing_impl::doubleToByte(double a, std::vector<unsigned char> &bytes){
+      union {
+        double myDouble;
+        unsigned char myBytes[sizeof(double)];
+      } double_to_byte;
+      double_to_byte.myDouble = a;
+      for (size_t i = 0; i < sizeof(double); i++) {
+        bytes.push_back((int)double_to_byte.myBytes[i]);
       }
     }
 
@@ -679,7 +692,7 @@ namespace gr {
     void framing_impl::prepare_snr(pmt::pmt_t snr_in) {
       _virgin = false;
       if (pmt::to_double(snr_in)) {
-        float snr = pmt::to_double(snr_in);
+        double snr = pmt::to_double(snr_in);
         if (_develop_mode) {
           std::cout << "SNR: " << snr << '\n';
         }

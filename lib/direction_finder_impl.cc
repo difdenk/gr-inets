@@ -73,8 +73,8 @@ namespace gr {
       int timeout_value = _timeout_value;
       pmt::pmt_t not_found = pmt::from_long(7);
       int received_frame_address = pmt::to_long(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("source_address"), not_found));
-      int snr = pmt::to_long(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_I"), not_found));
-      int angle = pmt::to_long(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_II"), not_found));
+      double snr = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_I"), not_found));
+      double angle = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_II"), not_found));
       if (_develop_mode) {
         std::cout << "Incoming node address: " << received_frame_address <<'\n';
         std::cout << "SNR: " << snr <<'\n';
@@ -84,8 +84,8 @@ namespace gr {
         snr_values.push_back(snr);
         angle_values.push_back(angle);
         if (snr_values.size()%update_interval == 0) {
-          int best_direction = find_best_direction();
-          _best_direction = pmt::from_long(best_direction);
+          double best_direction = find_best_direction();
+          _best_direction = pmt::from_double(best_direction);
           if (_develop_mode) {
             std::cout << "best_direction:" << best_direction << '\n';
           }
@@ -97,14 +97,14 @@ namespace gr {
       }
     }
 
-    int direction_finder_impl::find_best_direction(){
+    double direction_finder_impl::find_best_direction(){
       _biggest = std::max_element(snr_values.begin(), snr_values.end());
-      int snr_max = *_biggest;
+      double snr_max = *_biggest;
       if (_develop_mode) {
         std::cout << "SNR Max: "<< snr_max << '\n';
       }
       int index = std::distance(snr_values.begin(), _biggest);
-      int corresponding_angle = angle_values[index];
+      double corresponding_angle = angle_values[index];
       return corresponding_angle;
     }
 
@@ -119,7 +119,7 @@ namespace gr {
         std::cout << "SWEEP DONE BUT NO BEACON REPLY RECEIVED!" << '\n';
         std::cout << "DIRECTING THE ANTTENNA TO BROADSIDE DIRECTION (0 DEGREES)" << '\n';
         _best_direction = pmt::from_long(0);
-      }  
+      }
     }
 
   } /* namespace inets */

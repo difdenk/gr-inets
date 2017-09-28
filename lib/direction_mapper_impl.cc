@@ -71,7 +71,7 @@ namespace gr {
       pmt::pmt_t phase_key3 = pmt::string_to_symbol("phase_key3");
       pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
       if (pmt::is_number(trigger)) {
-        int best_direction = pmt::to_long(trigger);
+        double best_direction = pmt::to_double(trigger);
         pmt::pmt_t phase_value1 = pmt::from_double(best_direction*_PI/180);
         pmt::pmt_t phase_value2 = pmt::from_double(best_direction*_PI/180);
         pmt::pmt_t phase_value3 = pmt::from_double(best_direction*_PI/180);

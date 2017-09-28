@@ -346,7 +346,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>30</value>
+      <value>10</value>
     </param>
   </block>
   <block>
@@ -535,7 +535,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>15</value>
+      <value>10</value>
     </param>
   </block>
   <block>
@@ -2805,7 +2805,7 @@
     </param>
     <param>
       <key>duration_ms</key>
-      <value>200</value>
+      <value>150</value>
     </param>
     <param>
       <key>address_check</key>
@@ -3069,7 +3069,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>35</value>
+      <value>40</value>
     </param>
   </block>
   <block>
@@ -3223,7 +3223,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>1</value>
+      <value>0.5</value>
     </param>
   </block>
   <connection>

@@ -53,8 +53,8 @@ namespace gr {
         _len_destination_address(len_destination_address), // Bytes
         _len_source_address(len_source_address), // Bytes
         _len_num_transmission(len_num_transmission), // Bytes
-        _len_reserved_field_I(len_reserved_field_I), // Bytes
-        _len_reserved_field_II(len_reserved_field_II), // Bytes
+        _len_reserved_field_I(sizeof(double)), // Bytes
+        _len_reserved_field_II(sizeof(double)), // Bytes
         _len_payload_length(len_payload_length), // Bytes
         _apply_self_address_check(apply_self_address_check),
         _my_address(my_address)
@@ -194,6 +194,11 @@ namespace gr {
       }
       return int_num;
     }
+    template <typename T> T& frame_analysis_impl::from_bytes(const std::vector<unsigned char> &bytes, T& object) {
+      unsigned char* begin_object = reinterpret_cast<unsigned char*>(boost::addressof(object));
+      std::copy(bytes.begin(), bytes.end(), begin_object) ;
+      return object;
+    }
 
     pmt::pmt_t
     frame_analysis_impl::frame_decompose(pmt::pmt_t frame_pmt, int frame_type)
@@ -210,13 +215,13 @@ namespace gr {
       int index_pos = _len_frame_type;
       std::vector<unsigned char> frame_index_array(frame_header_array.begin() + index_pos, frame_header_array.begin() + index_pos + _len_frame_index);
       // disp_vec(frame_index_array);
-      int frame_index = BytesToint(frame_index_array);
+      int frame_index = from_bytes(frame_index_array, frame_index);
 
       // Get destination address
       int dest_pos = index_pos + _len_frame_index;
       std::vector<unsigned char> dest_array(frame_header_array.begin() + dest_pos, frame_header_array.begin() + dest_pos + _len_destination_address);
       //disp_vec(dest_array);
-      int destination_address = BytesToint(dest_array);
+      int destination_address = from_bytes<int>(dest_array, destination_address);
 
       // Get source address
       int src_pos = dest_pos + _len_destination_address;
@@ -240,13 +245,13 @@ namespace gr {
       int re_I_pos = ntrans_pos + _len_num_transmission;
       std::vector<unsigned char> re_I_array(frame_header_array.begin() + re_I_pos, frame_header_array.begin() + re_I_pos + _len_reserved_field_I);
       //disp_vec(re_I_array);
-      int reserved_field_I = BytesToint(re_I_array);
+      double reserved_field_I = from_bytes(re_I_array, reserved_field_I);
 
       // Get reserved field II
       int re_II_pos = re_I_pos + _len_reserved_field_I;
       std::vector<unsigned char> re_II_array(frame_header_array.begin() + re_II_pos, frame_header_array.begin() + re_II_pos + _len_reserved_field_II);
       //disp_vec(re_II_array);
-      int reserved_field_II = BytesToint(re_II_array);
+      double reserved_field_II = from_bytes(re_II_array, reserved_field_II);
 
       // Get payload length
       int payload_length_pos = re_II_pos + _len_reserved_field_II;
@@ -286,7 +291,7 @@ namespace gr {
         std::cout << "source address is: " << source_address << std::endl;
         std::cout << "number of transmission is: " << num_transmission << std::endl;
         std::cout << "SNR is: " << reserved_field_I << std::endl;
-        std::cout << "reserved field II is: " << reserved_field_II << std::endl;
+        std::cout << "Angle is: " << reserved_field_II << std::endl;
         std::cout << "payload length is: " << payload_length << std::endl;
         std::cout << "frame header length is: " << header_length << std::endl;
         std::cout << "self address check is: " << self_address_check << std::endl;
@@ -318,8 +323,8 @@ namespace gr {
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("destination_address"), pmt::from_long(destination_address));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("source_address"), pmt::from_long(source_address));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("num_transmission"), pmt::from_long(num_transmission));
-        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_I"), pmt::from_long(reserved_field_I));
-        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_II"), pmt::from_long(reserved_field_II));
+        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_I"), pmt::from_double(reserved_field_I));
+        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_II"), pmt::from_double(reserved_field_II));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("payload_length"), pmt::from_long(payload_length));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("header_length"), pmt::from_long(header_length));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("self_address_check"),pmt::from_long(1));

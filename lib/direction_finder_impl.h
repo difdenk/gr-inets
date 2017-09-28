@@ -37,10 +37,10 @@ namespace gr {
        int _destination_address;
        int _virgin;
        pmt::pmt_t _best_direction;
-       std::vector<int> snr_values;
-       std::vector<int> angle_values;
-       std::vector<int>::iterator _biggest;
-       int find_best_direction();
+       std::vector<double> snr_values;
+       std::vector<double> angle_values;
+       std::vector<double>::iterator _biggest;
+       double find_best_direction();
        void sweep_done(pmt::pmt_t sweep_done);
        void generate_node_table(pmt::pmt_t beacon_reply_in);
 
