@@ -24,6 +24,7 @@
 #include <inets/direction_finder.h>
 #include <vector>
 #include <algorithm>
+#include "radio.h"
 
 namespace gr {
   namespace inets {
@@ -36,17 +37,23 @@ namespace gr {
        double _timeout_value;
        int _destination_address;
        int _virgin;
+       bool _sweep_done;
+       radio _myRadio;
        pmt::pmt_t _best_direction;
-       std::vector<double> snr_values;
-       std::vector<double> angle_values;
+       std::vector<double> _best_direction_each;
+       std::set<int> _nodes;
+       std::vector<radio> _table;
+       std::vector<int> _node_addresses;
+       std::vector<double> _snr_values;
+       std::vector<double> _angle_values;
        std::vector<double>::iterator _biggest;
-       double find_best_direction();
-       void sweep_done(pmt::pmt_t sweep_done);
-       void generate_node_table(pmt::pmt_t beacon_reply_in);
 
      public:
       direction_finder_impl(int develop_mode, double update_interval, double timeout_value, int destination_address);
       ~direction_finder_impl();
+      double find_best_direction(radio input);
+      void sweep_done(pmt::pmt_t sweep_done);
+      void generate_node_table(pmt::pmt_t beacon_reply_in);
     };
 
   } // namespace inets

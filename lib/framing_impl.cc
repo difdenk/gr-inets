@@ -706,7 +706,7 @@ namespace gr {
     }
 
     void framing_impl::angle_in(pmt::pmt_t angle_in) {
-      if (pmt::to_double(angle_in)) {
+      if (pmt::is_number(angle_in)) {
         double angle = pmt::to_double(angle_in);
         if (_develop_mode) {
           std::cout << "Angle: " << angle << '\n';

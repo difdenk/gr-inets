@@ -24,6 +24,7 @@
 
 #include <gnuradio/io_signature.h>
 #include "direction_finder_impl.h"
+#include "radio.h"
 #include <vector>
 #include <algorithm>
 #include <iterator>
@@ -48,8 +49,8 @@ namespace gr {
               _develop_mode(develop_mode),
               _update_interval(update_interval),
               _timeout_value(timeout_value),
-              _destination_address(destination_address)
-              //_virgin(true)
+              _destination_address(destination_address),
+              _sweep_done(false)
     {
       if(develop_mode)
         std::cout << "develop_mode of Direction mapper is activated." << '\n';
@@ -68,11 +69,11 @@ namespace gr {
     }
 
     void direction_finder_impl::generate_node_table(pmt::pmt_t beacon_reply_in) {
-      _virgin = 7;
       int update_interval = _update_interval;
       int timeout_value = _timeout_value;
       pmt::pmt_t not_found = pmt::from_long(7);
       int received_frame_address = pmt::to_long(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("source_address"), not_found));
+      _nodes.insert(received_frame_address);
       double snr = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       double angle = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_II"), not_found));
       if (_develop_mode) {
@@ -80,47 +81,77 @@ namespace gr {
         std::cout << "SNR: " << snr <<'\n';
         std::cout << "Direction of the destined node : " << angle <<'\n';
       }
-      if (_destination_address = received_frame_address) {
-        snr_values.push_back(snr);
-        angle_values.push_back(angle);
-        if (snr_values.size()%update_interval == 0) {
-          double best_direction = find_best_direction();
-          _best_direction = pmt::from_double(best_direction);
-          if (_develop_mode) {
-            std::cout << "best_direction:" << best_direction << '\n';
-          }
+      _node_addresses.push_back(received_frame_address);
+      _snr_values.push_back(snr);
+      _angle_values.push_back(angle);
+      if (_sweep_done) {
+        int initial_size = _nodes.size();
+        for (size_t i = 0; i < initial_size; i++) {
+          radio newRadio;
+          _table.push_back(newRadio);
         }
-        if (snr_values.size() >= timeout_value) {
-          snr_values.pop_back();
-          angle_values.pop_back();
+        std::vector<int>::iterator it;
+        for (int i = 0; i < initial_size; i++) {
+          std::vector<int> used_node_numbers;
+          if (i != 0) {
+            used_node_numbers.push_back(_table[i-1].get_node_number());
+          }
+          for (it = _node_addresses.begin(); it != _node_addresses.end(); it++){
+            int j = 0;
+            while (j < used_node_numbers.size()) {
+              while (used_node_numbers[j] == *it) {
+                it++;
+              }
+              j++;
+            }
+            _table[i].set_node_number(*it);
+            if (_table[i].check_node_number(*it)) {
+              int index = std::distance(_node_addresses.begin(), it);
+              _table[i].insert_element(_snr_values[index]);
+              _table[i].insert_element(_angle_values[index]);
+            }
+          }
+          _best_direction_each[i] = find_best_direction(_table[i]);
         }
       }
     }
 
-    double direction_finder_impl::find_best_direction(){
-      _biggest = std::max_element(snr_values.begin(), snr_values.end());
+    double direction_finder_impl::find_best_direction(radio input){
+      _biggest = input.find_max_snr();
       double snr_max = *_biggest;
       if (_develop_mode) {
         std::cout << "SNR Max: "<< snr_max << '\n';
       }
-      int index = std::distance(snr_values.begin(), _biggest);
-      double corresponding_angle = angle_values[index];
+      double corresponding_angle = input.find_coresponding_angle(_biggest);
       return corresponding_angle;
     }
 
     void direction_finder_impl::sweep_done(pmt::pmt_t sweep_done){
-      if (_virgin = 7) {
-        message_port_pub(pmt::mp("best_direction_out"), _best_direction);
-        std::cout << "THE DESTINATION NODE IS AT ANGLE "<< _best_direction << '\n';
-        std::cout << "TRANSMITTER IS LOCKED TO ANGLE " << _best_direction << '\n';
+      _sweep_done = true;
+      if (pmt::is_dict(sweep_done)) {
+        _virgin = 8;
+        pmt::pmt_t number = pmt::car(sweep_done);
+        pmt::pmt_t angle = pmt::cdr(sweep_done);
+        std::cout << "Sweeping Mode is disabled" << '\n';
+        message_port_pub(pmt::mp("best_direction_out"), angle);
       }
-      else
-      {
-        std::cout << "SWEEP DONE BUT NO BEACON REPLY RECEIVED!" << '\n';
-        std::cout << "DIRECTING THE ANTTENNA TO BROADSIDE DIRECTION (0 DEGREES)" << '\n';
-        _best_direction = pmt::from_long(0);
+      else if(_virgin != 8) {
+        if (_angle_values.size() != 0) {
+          if (_nodes.size() > 1) {
+            /* code */
+          } else {
+            _best_direction = pmt::from_double(_best_direction_each[0]);
+            message_port_pub(pmt::mp("best_direction_out"), _best_direction);
+            std::cout << "THE DESTINATION NODE IS AT ANGLE "<< _best_direction << '\n';
+            std::cout << "TRANSMITTER IS LOCKED TO ANGLE " << _best_direction << '\n';
+          }
+        }
+        else {
+          std::cout << "SWEEP DONE BUT NO BEACON REPLY RECEIVED!" << '\n';
+          std::cout << "DIRECTING THE ANTTENNA TO BROADSIDE DIRECTION (0 DEGREES)" << '\n';
+          _best_direction = pmt::from_long(0);
+        }
       }
     }
-
   } /* namespace inets */
 } /* namespace gr */
