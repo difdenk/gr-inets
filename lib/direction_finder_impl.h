@@ -38,7 +38,6 @@ namespace gr {
        int _destination_address;
        int _virgin;
        bool _sweep_done;
-       radio _myRadio;
        pmt::pmt_t _best_direction;
        std::vector<double> _best_direction_each;
        std::set<int> _nodes;
