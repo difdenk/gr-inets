@@ -586,7 +586,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(216, 140)</value>
+      <value>(224, 140)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -626,6 +626,37 @@
     <param>
       <key>value</key>
       <value>"addr0=192.168.10.4"</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_message_debug</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(264, 208)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_message_debug_0</value>
     </param>
   </block>
   <block>
@@ -1081,7 +1112,7 @@
     </param>
     <param>
       <key>develop_mode</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -1227,7 +1258,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(120, 544)</value>
+      <value>(120, 552)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1385,7 +1416,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(72, 484)</value>
+      <value>(72, 476)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2076,6 +2107,12 @@
     <sink_block_id>inets_frame_analysis_0</sink_block_id>
     <source_key>rx_frame_out</source_key>
     <sink_key>frame_in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_receiving_0</source_block_id>
+    <sink_block_id>blocks_message_debug_0</sink_block_id>
+    <source_key>rx_power_out</source_key>
+    <sink_key>print</sink_key>
   </connection>
   <connection>
     <source_block_id>inets_receiving_0</source_block_id>

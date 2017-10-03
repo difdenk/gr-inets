@@ -42,6 +42,10 @@ namespace gr {
       std::vector<int> _nodes;
       std::vector<double> _angles;
       pmt::pmt_t _phase_values;
+      pmt::pmt_t _phase_key1;
+      pmt::pmt_t _phase_key2;
+      pmt::pmt_t _phase_key3;
+      pmt::pmt_t _phase_key4;
       void accept_frame(pmt::pmt_t trigger);
       void check_destination(pmt::pmt_t frame_in);
     };

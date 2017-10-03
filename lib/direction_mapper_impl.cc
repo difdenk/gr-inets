@@ -58,10 +58,10 @@ namespace gr {
       set_msg_handler(pmt::mp("frame_in"), boost::bind(&direction_mapper_impl::accept_frame, this, _1));
       set_msg_handler(pmt::mp("destination_address_check_in"), boost::bind(&direction_mapper_impl::check_destination, this, _1));
       _phase_values = pmt::make_dict();
-      pmt::pmt_t phase_key1 = pmt::string_to_symbol("phase_key1");
-      pmt::pmt_t phase_key2 = pmt::string_to_symbol("phase_key2");
-      pmt::pmt_t phase_key3 = pmt::string_to_symbol("phase_key3");
-      pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
+      _phase_key1 = pmt::string_to_symbol("phase_key1");
+      _phase_key2 = pmt::string_to_symbol("phase_key2");
+      _phase_key3 = pmt::string_to_symbol("phase_key3");
+      _phase_key4 = pmt::string_to_symbol("phase_key4");
     }
 
     /*
@@ -72,13 +72,14 @@ namespace gr {
     }
 
     void direction_mapper_impl::check_destination(pmt::pmt_t frame_in) {
-      if (pmt::is_dict(frame_in)) {
+      pmt::pmt_t frame_type;
+      pmt::pmt_t not_found = pmt::from_long(7);
+      if (pmt::is_dict(frame_in) && pmt::to_long(pmt::dict_ref(frame_in, pmt::string_to_symbol("frame_type"), not_found)) == 1) {
         if (_develop_mode) {
-          std::cout << "frame_in is a dict" << '\n';
+          //std::cout << "frame_in is a dict" << '\n';
         }
-        pmt::pmt_t not_found = pmt::from_long(7);
         pmt::pmt_t destination = pmt::dict_ref(frame_in, pmt::string_to_symbol("destination_address"), not_found);
-        int destination_address = pmt::from_long(destination);
+        int destination_address = pmt::to_long(destination);
         if (_nodes.size() != 0) {
           int index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), destination_address));
           double corresponding_angle = _angles[index];
@@ -86,10 +87,10 @@ namespace gr {
           pmt::pmt_t phase_value2 = pmt::from_double(corresponding_angle*_PI/180);
           pmt::pmt_t phase_value3 = pmt::from_double(corresponding_angle*_PI/180);
           pmt::pmt_t phase_value4 = pmt::from_double(corresponding_angle*_PI/180);
-          _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
-          _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
-          _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
-          _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
+          _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
+          _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
+          _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
+          _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
           message_port_pub(pmt::mp("phase_out"), _phase_values);
         }
       }
@@ -102,18 +103,18 @@ namespace gr {
         pmt::pmt_t phase_value2 = pmt::from_double(best_direction*_PI/180);
         pmt::pmt_t phase_value3 = pmt::from_double(best_direction*_PI/180);
         pmt::pmt_t phase_value4 = pmt::from_double(best_direction*_PI/180);
-        _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
-        _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
-        _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
-        _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
         message_port_pub(pmt::mp("phase_out"), _phase_values);
         if (_develop_mode) {
           std::cout << "best direction sent" << '\n';
         }
       }
       else if (pmt::is_dict(trigger)) {
-        int node_number = pmt::car(trigger);
-        double angle = pmt::cdr(trigger);
+        int node_number = pmt::to_long(pmt::car(trigger));
+        double angle = pmt::to_double(pmt::cdr(trigger));
         _nodes.push_back(node_number);
         _angles.push_back(angle);
         if (_develop_mode) {
@@ -126,10 +127,10 @@ namespace gr {
         pmt::pmt_t phase_value2 = pmt::from_double(_phase_2);
         pmt::pmt_t phase_value3 = pmt::from_double(_phase_3);
         pmt::pmt_t phase_value4 = pmt::from_double(_phase_4);
-        _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
-        _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
-        _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
-        _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
         message_port_pub(pmt::mp("phase_out"), _phase_values);
         if (_develop_mode) {
           std::cout << "default phase sent" << '\n';

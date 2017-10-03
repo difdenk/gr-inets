@@ -132,7 +132,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>3</value>
+      <value>99</value>
     </param>
   </block>
   <block>
@@ -1544,7 +1544,7 @@
     </param>
     <param>
       <key>develop_mode</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>timeout_value</key>
@@ -1583,7 +1583,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(160, 296)</value>
+      <value>(72, 272)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1887,7 +1887,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(456, 624)</value>
+      <value>(432, 640)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1973,7 +1973,7 @@
     </param>
     <param>
       <key>develop_mode</key>
-      <value>0</value>
+      <value>1</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -1981,7 +1981,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(880, 240)</value>
+      <value>(848, 220)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2260,6 +2260,10 @@
       <value>1</value>
     </param>
     <param>
+      <key>node_addresses_in_h</key>
+      <value>1</value>
+    </param>
+    <param>
       <key>snr_in_h</key>
       <value>1</value>
     </param>
@@ -2419,6 +2423,10 @@
       <value>1</value>
     </param>
     <param>
+      <key>node_addresses_in_h</key>
+      <value>0</value>
+    </param>
+    <param>
       <key>snr_in_h</key>
       <value>1</value>
     </param>
@@ -2432,7 +2440,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(312, 292)</value>
+      <value>(312, 272)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2576,6 +2584,10 @@
     <param>
       <key>angle_in_h</key>
       <value>0</value>
+    </param>
+    <param>
+      <key>node_addresses_in_h</key>
+      <value>1</value>
     </param>
     <param>
       <key>snr_in_h</key>
@@ -2746,7 +2758,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(200, 236)</value>
+      <value>(200, 228)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -3069,7 +3081,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>40</value>
+      <value>30</value>
     </param>
   </block>
   <block>
@@ -3223,7 +3235,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>0.5</value>
+      <value>0.3</value>
     </param>
   </block>
   <connection>
@@ -3297,6 +3309,12 @@
     <sink_block_id>inets_frame_path_0_0_0</sink_block_id>
     <source_key>best_direction_out</source_key>
     <sink_key>frame_in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_direction_finder_0</source_block_id>
+    <sink_block_id>inets_framing_0_0</sink_block_id>
+    <source_key>best_direction_out</source_key>
+    <sink_key>node_addresses_in</sink_key>
   </connection>
   <connection>
     <source_block_id>inets_direction_finder_0</source_block_id>

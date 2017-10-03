@@ -320,7 +320,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(864, 288)</value>
+      <value>(864, 300)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -473,7 +473,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(568, 272)</value>
+      <value>(568, 288)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -743,7 +743,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1040, 264)</value>
+      <value>(1056, 268)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1111,7 +1111,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(696, 176)</value>
+      <value>(736, 148)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1331,7 +1331,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(576, 184)</value>
+      <value>(592, 224)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -3604,6 +3604,12 @@
     <sink_block_id>inets_decouple_frame_info_0</sink_block_id>
     <source_key>out</source_key>
     <sink_key>frame_cluster_in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>pad_source_0</source_block_id>
+    <sink_block_id>inets_direction_mapper_0</sink_block_id>
+    <source_key>out</source_key>
+    <sink_key>destination_address_check_in</sink_key>
   </connection>
   <connection>
     <source_block_id>pad_source_0</source_block_id>

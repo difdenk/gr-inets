@@ -133,7 +133,7 @@ namespace gr {
 
     void direction_finder_impl::calculate(){
       int initial_size = _nodes.size();
-      std::cout << "initial_size: " << initial_size << '\n';
+      //std::cout << "initial_size: " << initial_size << '\n';
       for (size_t i = 0; i < initial_size; i++) {
         radio newRadio;
         _table.push_back(newRadio);
@@ -149,20 +149,20 @@ namespace gr {
         for (it = _node_addresses.begin(); it != _node_addresses.end(); it++){
           int j = 0;
           while (j < used_node_numbers.size()) {
-            std::cout << "hellooo" << '\n';
+            //std::cout << "hellooo" << '\n';
             while (used_node_numbers[j] == *it) {
               it++;
             }
             j++;
           }
           _table[i].set_node_number(*it);
-          std::cout << "node number: " << *it << '\n';
+          //std::cout << "node number: " << *it << '\n';
           if (_table[i].get_node_number() == *it) {
             int index = std::distance(_node_addresses.begin(), it);
             _table[i].insert_snr(_snr_values[index]);
-            std::cout << "snr: "  << _snr_values[index] << '\n';
+            //std::cout << "snr: "  << _snr_values[index] << '\n';
             _table[i].insert_angle(_angle_values[index]);
-            std::cout << "angle: " << _angle_values[index] << '\n';
+            //std::cout << "angle: " << _angle_values[index] << '\n';
           }
         }
         _best_direction_each[i] = find_best_direction(_table[i]);
@@ -196,7 +196,6 @@ namespace gr {
         message_port_pub(pmt::mp("best_direction_out"), angle);
       }
       else if(_virgin != 8) {
-        std::cout << "debug1" << '\n';
         if (_angle_values.size() != 0) {
           if (_nodes.size() > 1) {
             for (size_t i = 0; i < _nodes.size(); i++) {
@@ -204,18 +203,16 @@ namespace gr {
               message_port_pub(pmt::mp("best_direction_out"), _best_direction);
             }
           } else {
-            std::cout << "debug" << '\n';
-            _best_direction = pmt::from_double(_best_direction_each[0]);
+            _best_direction = pmt::cons(pmt::from_long(_table[0].get_node_number()), pmt::from_double(_best_direction_each[0]));
             message_port_pub(pmt::mp("best_direction_out"), _best_direction);
-            std::cout << "THE DESTINATION NODE IS AT ANGLE "<< _best_direction << '\n';
-            std::cout << "TRANSMITTER IS LOCKED TO ANGLE " << _best_direction << '\n';
+            std::cout << "THE DESTINATION NODE IS AT ANGLE "<< pmt::to_double(pmt::cdr(_best_direction)) << '\n';
+            std::cout << "TRANSMITTER IS LOCKED TO ANGLE " <<  pmt::to_double(pmt::cdr(_best_direction)) << '\n';
           }
         }
         else {
           std::cout << "SWEEP DONE BUT NO BEACON REPLY RECEIVED!" << '\n';
           std::cout << "DIRECTING THE ANTTENNA TO BROADSIDE DIRECTION (0 DEGREES)" << '\n';
           _best_direction = pmt::from_long(0);
-          pmt::print(_best_direction);
           message_port_pub(pmt::mp("best_direction_out"), _best_direction);
         }
       }

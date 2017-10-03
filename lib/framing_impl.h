@@ -62,11 +62,13 @@ namespace gr {
       bool _virgin;
       std::vector<unsigned int> _node_list;
       std::vector<unsigned int> _slot_list_ms;
+      std::vector<int> _destination_addresses;
       boost::crc_optimal<32, 0x04C11DB7, 0xFFFFFFFF, 0xFFFFFFFF, true, true> _crc_impl;
       pmt::pmt_t crc32_bb_calc(pmt::pmt_t msg);
       void prepare_snr(pmt::pmt_t snr_in);
       void angle_in(pmt::pmt_t angle_in);
       void catagorization(pmt::pmt_t data_in);
+      void count_nodes(pmt::pmt_t nodes_in);
       void reset_frame_index(pmt::pmt_t pmt_in);
       pmt::pmt_t data_frame_formation(pmt::pmt_t rx_payload);
       pmt::pmt_t ampdu_subframe_formation(pmt::pmt_t rx_payload);
