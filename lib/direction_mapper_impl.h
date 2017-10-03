@@ -39,8 +39,11 @@ namespace gr {
       double _phase_2;
       double _phase_3;
       double _phase_4;
+      std::vector<int> _nodes;
+      std::vector<double> _angles;
       pmt::pmt_t _phase_values;
       void accept_frame(pmt::pmt_t trigger);
+      void check_destination(pmt::pmt_t frame_in);
     };
 
   } // namespace inets

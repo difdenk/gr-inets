@@ -24,7 +24,6 @@
 #include <inets/direction_finder.h>
 #include <vector>
 #include <algorithm>
-#include "radio.h"
 
 namespace gr {
   namespace inets {
@@ -38,6 +37,22 @@ namespace gr {
        int _destination_address;
        int _virgin;
        bool _sweep_done;
+       class radio {
+         private:
+           int node_number;
+           std::vector<double> snr_radio;
+           std::vector<double> angle_radio;
+         public:
+           radio();
+           ~radio();
+           void insert_snr(double element);
+           void insert_angle(double element);
+           std::vector<double>::iterator find_max_snr();
+           double find_coresponding_angle(std::vector<double>::iterator it);
+           void set_node_number(int number);
+           bool check_node_number(int address);
+           int get_node_number();
+       };
        pmt::pmt_t _best_direction;
        std::vector<double> _best_direction_each;
        std::set<int> _nodes;
@@ -53,6 +68,7 @@ namespace gr {
       double find_best_direction(radio input);
       void sweep_done(pmt::pmt_t sweep_done);
       void generate_node_table(pmt::pmt_t beacon_reply_in);
+      void calculate();
     };
 
   } // namespace inets

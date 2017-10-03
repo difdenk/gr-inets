@@ -54,8 +54,14 @@ namespace gr {
       std::cout << "develop_mode of Direction mapper is activated." << '\n';
       message_port_register_out(pmt::mp("phase_out"));
       message_port_register_in(pmt::mp("frame_in"));
+      message_port_register_in(pmt::mp("destination_address_check_in")); // checks the destination address of the incoming frames
       set_msg_handler(pmt::mp("frame_in"), boost::bind(&direction_mapper_impl::accept_frame, this, _1));
+      set_msg_handler(pmt::mp("destination_address_check_in"), boost::bind(&direction_mapper_impl::check_destination, this, _1));
       _phase_values = pmt::make_dict();
+      pmt::pmt_t phase_key1 = pmt::string_to_symbol("phase_key1");
+      pmt::pmt_t phase_key2 = pmt::string_to_symbol("phase_key2");
+      pmt::pmt_t phase_key3 = pmt::string_to_symbol("phase_key3");
+      pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
     }
 
     /*
@@ -65,11 +71,31 @@ namespace gr {
     {
     }
 
+    void direction_mapper_impl::check_destination(pmt::pmt_t frame_in) {
+      if (pmt::is_dict(frame_in)) {
+        if (_develop_mode) {
+          std::cout << "frame_in is a dict" << '\n';
+        }
+        pmt::pmt_t not_found = pmt::from_long(7);
+        pmt::pmt_t destination = pmt::dict_ref(frame_in, pmt::string_to_symbol("destination_address"), not_found);
+        int destination_address = pmt::from_long(destination);
+        if (_nodes.size() != 0) {
+          int index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), destination_address));
+          double corresponding_angle = _angles[index];
+          pmt::pmt_t phase_value1 = pmt::from_double(corresponding_angle*_PI/180);
+          pmt::pmt_t phase_value2 = pmt::from_double(corresponding_angle*_PI/180);
+          pmt::pmt_t phase_value3 = pmt::from_double(corresponding_angle*_PI/180);
+          pmt::pmt_t phase_value4 = pmt::from_double(corresponding_angle*_PI/180);
+          _phase_values = pmt::dict_add(_phase_values, phase_key1, phase_value1);
+          _phase_values = pmt::dict_add(_phase_values, phase_key2, phase_value2);
+          _phase_values = pmt::dict_add(_phase_values, phase_key3, phase_value3);
+          _phase_values = pmt::dict_add(_phase_values, phase_key4, phase_value4);
+          message_port_pub(pmt::mp("phase_out"), _phase_values);
+        }
+      }
+    }
+
     void direction_mapper_impl::accept_frame(pmt::pmt_t trigger) {
-      pmt::pmt_t phase_key1 = pmt::string_to_symbol("phase_key1");
-      pmt::pmt_t phase_key2 = pmt::string_to_symbol("phase_key2");
-      pmt::pmt_t phase_key3 = pmt::string_to_symbol("phase_key3");
-      pmt::pmt_t phase_key4 = pmt::string_to_symbol("phase_key4");
       if (pmt::is_number(trigger)) {
         double best_direction = pmt::to_double(trigger);
         pmt::pmt_t phase_value1 = pmt::from_double(best_direction*_PI/180);
@@ -83,6 +109,16 @@ namespace gr {
         message_port_pub(pmt::mp("phase_out"), _phase_values);
         if (_develop_mode) {
           std::cout << "best direction sent" << '\n';
+        }
+      }
+      else if (pmt::is_dict(trigger)) {
+        int node_number = pmt::car(trigger);
+        double angle = pmt::cdr(trigger);
+        _nodes.push_back(node_number);
+        _angles.push_back(angle);
+        if (_develop_mode) {
+          std::cout << "Destination Address: " << node_number << '\n';
+          std::cout << "Location in Angles: " << angle << '\n';
         }
       }
       else {

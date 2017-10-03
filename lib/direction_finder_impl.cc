@@ -24,7 +24,6 @@
 
 #include <gnuradio/io_signature.h>
 #include "direction_finder_impl.h"
-#include "radio.h"
 #include <vector>
 #include <algorithm>
 #include <iterator>
@@ -68,6 +67,52 @@ namespace gr {
     {
     }
 
+    direction_finder_impl::radio::radio(){
+      int node_number = 0;
+      std::vector<double> snr_radio;
+      std::vector<double> angle_radio;
+    }
+
+    direction_finder_impl::radio::~radio(){}
+
+    void direction_finder_impl::radio::insert_snr(double element) {
+      this->snr_radio.push_back(element);
+    }
+
+    void direction_finder_impl::radio::insert_angle(double element) {
+      this->angle_radio.push_back(element);
+    }
+
+    std::vector<double>::iterator direction_finder_impl::radio::find_max_snr(){
+      return std::max_element(this->snr_radio.begin(), this->snr_radio.end());
+    }
+
+    double direction_finder_impl::radio::find_coresponding_angle(std::vector<double>::iterator it){
+      int index = std::distance(this->snr_radio.begin(), it);
+      double corresponding_angle = this->angle_radio[index];
+      return corresponding_angle;
+    }
+
+    void direction_finder_impl::radio::set_node_number(int number) {
+      if (this-> node_number == 0 || this-> node_number > 10 || this-> node_number < 0 ) {
+        this->node_number = number;
+      }
+      else
+        std::cout << "Node number was already set." << '\n';
+    }
+
+    bool direction_finder_impl::radio::check_node_number(int address) {
+      if (this->node_number == address && this->node_number != 0) {
+        return true;
+      }
+      else
+        return false;
+    }
+
+    int direction_finder_impl::radio::get_node_number() {
+      return this->node_number;
+    }
+
     void direction_finder_impl::generate_node_table(pmt::pmt_t beacon_reply_in) {
       int update_interval = _update_interval;
       int timeout_value = _timeout_value;
@@ -76,43 +121,52 @@ namespace gr {
       _nodes.insert(received_frame_address);
       double snr = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       double angle = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_II"), not_found));
-      if (_develop_mode) {
+      /*if (_develop_mode) {
         std::cout << "Incoming node address: " << received_frame_address <<'\n';
         std::cout << "SNR: " << snr <<'\n';
         std::cout << "Direction of the destined node : " << angle <<'\n';
-      }
+      }*/
       _node_addresses.push_back(received_frame_address);
       _snr_values.push_back(snr);
       _angle_values.push_back(angle);
-      if (_sweep_done) {
-        int initial_size = _nodes.size();
-        for (size_t i = 0; i < initial_size; i++) {
-          radio newRadio;
-          _table.push_back(newRadio);
+    }
+
+    void direction_finder_impl::calculate(){
+      int initial_size = _nodes.size();
+      std::cout << "initial_size: " << initial_size << '\n';
+      for (size_t i = 0; i < initial_size; i++) {
+        radio newRadio;
+        _table.push_back(newRadio);
+        double newAngle;
+        _best_direction_each.push_back(newAngle);
+      }
+      std::vector<int>::iterator it;
+      for (int i = 0; i < initial_size; i++) {
+        std::vector<int> used_node_numbers;
+        if (i != 0) {
+          used_node_numbers.push_back(_table[i-1].get_node_number());
         }
-        std::vector<int>::iterator it;
-        for (int i = 0; i < initial_size; i++) {
-          std::vector<int> used_node_numbers;
-          if (i != 0) {
-            used_node_numbers.push_back(_table[i-1].get_node_number());
-          }
-          for (it = _node_addresses.begin(); it != _node_addresses.end(); it++){
-            int j = 0;
-            while (j < used_node_numbers.size()) {
-              while (used_node_numbers[j] == *it) {
-                it++;
-              }
-              j++;
+        for (it = _node_addresses.begin(); it != _node_addresses.end(); it++){
+          int j = 0;
+          while (j < used_node_numbers.size()) {
+            std::cout << "hellooo" << '\n';
+            while (used_node_numbers[j] == *it) {
+              it++;
             }
-            _table[i].set_node_number(*it);
-            if (_table[i].check_node_number(*it)) {
-              int index = std::distance(_node_addresses.begin(), it);
-              _table[i].insert_element(_snr_values[index]);
-              _table[i].insert_element(_angle_values[index]);
-            }
+            j++;
           }
-          _best_direction_each[i] = find_best_direction(_table[i]);
+          _table[i].set_node_number(*it);
+          std::cout << "node number: " << *it << '\n';
+          if (_table[i].get_node_number() == *it) {
+            int index = std::distance(_node_addresses.begin(), it);
+            _table[i].insert_snr(_snr_values[index]);
+            std::cout << "snr: "  << _snr_values[index] << '\n';
+            _table[i].insert_angle(_angle_values[index]);
+            std::cout << "angle: " << _angle_values[index] << '\n';
+          }
         }
+        _best_direction_each[i] = find_best_direction(_table[i]);
+        std::cout << "best_direction_each: " << _best_direction_each[i] << '\n';
       }
     }
 
@@ -123,11 +177,17 @@ namespace gr {
         std::cout << "SNR Max: "<< snr_max << '\n';
       }
       double corresponding_angle = input.find_coresponding_angle(_biggest);
+      if (_develop_mode) {
+        std::cout << "Best Angle: " << corresponding_angle << '\n';
+      }
+      //_best_direction_each[input.get_node_number()] = corresponding_angle;
+      //std::cout << "try: " << _best_direction_each[input.get_node_number()] << '\n';
       return corresponding_angle;
     }
 
     void direction_finder_impl::sweep_done(pmt::pmt_t sweep_done){
       _sweep_done = true;
+      calculate();
       if (pmt::is_dict(sweep_done)) {
         _virgin = 8;
         pmt::pmt_t number = pmt::car(sweep_done);
@@ -136,10 +196,15 @@ namespace gr {
         message_port_pub(pmt::mp("best_direction_out"), angle);
       }
       else if(_virgin != 8) {
+        std::cout << "debug1" << '\n';
         if (_angle_values.size() != 0) {
           if (_nodes.size() > 1) {
-            /* code */
+            for (size_t i = 0; i < _nodes.size(); i++) {
+              _best_direction = pmt::cons(pmt::from_long(_table[i].get_node_number()), pmt::from_double(_best_direction_each[i]));
+              message_port_pub(pmt::mp("best_direction_out"), _best_direction);
+            }
           } else {
+            std::cout << "debug" << '\n';
             _best_direction = pmt::from_double(_best_direction_each[0]);
             message_port_pub(pmt::mp("best_direction_out"), _best_direction);
             std::cout << "THE DESTINATION NODE IS AT ANGLE "<< _best_direction << '\n';
@@ -150,6 +215,8 @@ namespace gr {
           std::cout << "SWEEP DONE BUT NO BEACON REPLY RECEIVED!" << '\n';
           std::cout << "DIRECTING THE ANTTENNA TO BROADSIDE DIRECTION (0 DEGREES)" << '\n';
           _best_direction = pmt::from_long(0);
+          pmt::print(_best_direction);
+          message_port_pub(pmt::mp("best_direction_out"), _best_direction);
         }
       }
     }

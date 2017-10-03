@@ -83,6 +83,8 @@ namespace gr {
       set_msg_handler(pmt::mp("angle_in"), boost::bind(&framing_impl::angle_in, this, _1 ));
       message_port_register_in(pmt::mp("reset_index"));
       set_msg_handler(pmt::mp("reset_index"), boost::bind(&framing_impl::reset_frame_index, this, _1 ));
+      message_port_register_in(pmt::mp("node_addresses_in"));
+      set_msg_handler(pmt::mp("node_addresses_in"), boost::bind(&framing_impl::count_nodes, this, _1 ));
       message_port_register_out(pmt::mp("frame_out"));
       // only in develop_mode
       message_port_register_out(pmt::mp("frame_pmt_out"));
@@ -555,17 +557,15 @@ namespace gr {
       std::vector< unsigned char > vec_reserved_field_I;// snr value
       std::vector< unsigned char > vec_reserved_field_II; // angle value
       std::vector< unsigned char > vec_payload_length;
-      //std::vector< unsigned char > vec_snr;
 
-      //int snr = _snr;
 
         /*
         frame type (1 Bytes)
         frame index (1 Bytes)
         Destination address (1 Bytes)
         Source address (1 Bytes)
-        Reserved field 1 (2 Bytes)
-        Reserved field 2 (2 Bytes)
+        Reserved field 1 (8 Bytes)
+        Reserved field 2 (8 Bytes)
         Payload length (1 Bytes)
        */
       // Frame type
@@ -584,8 +584,6 @@ namespace gr {
       doubleToByte(reserved_field_I, vec_reserved_field_I);
       // Reserved field II
       doubleToByte(reserved_field_II, vec_reserved_field_II);
-      // snr for directional transmission
-      //intToByte(snr, &vec_snr, 2);
 
       //std::cout  << "Frame header length before frame type: " << frame_header->size() << std::endl;
       frame_header->insert(frame_header->end(), vec_frame_type.begin(), vec_frame_type.begin() + _len_frame_type);
