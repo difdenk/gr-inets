@@ -70,7 +70,8 @@ namespace gr {
         _default_payload(default_payload),
         _default_payload_length(default_payload_length),
         _internal_index(internal_index),
-        _virgin(true)
+        _virgin(true),
+        _trigger(false)
         //_snr(31)
     {
       if(_develop_mode)
@@ -110,13 +111,15 @@ namespace gr {
     }
 
     void framing_impl::count_nodes(pmt::pmt_t nodes_in) {
+      _trigger = true;
       if (pmt::is_dict(nodes_in)) {
         int address = pmt::to_long(pmt::car(nodes_in));
         _destination_addresses.push_back(address);
       }
-      else
+      else {
         std::cout << "Nodes are not dict." << '\n';
-        _destination_address = 99;
+        _destination_addresses.push_back(99);
+      }
     }
 
     void
@@ -336,10 +339,13 @@ namespace gr {
           /*for (size_t i = 0; i < _destination_addresses.size(); i++) {
             std::cout << "Addresses in the vector:" << _destination_addresses[i] << '\n';
           }*/
-          int destination_address = _destination_addresses[rand() % _destination_addresses.size()]; // prototype for sending to different destination nodes.
+          if (_trigger) {
+            _destination_address = _destination_addresses[rand() % _destination_addresses.size()]; // prototype for sending to different destination nodes.
+            //std::cout << "_destination_address: " << _destination_address << '\n';
+          }
           //std::cout << "Random Destination: " << destination_address << '\n';
           //std::cout << "Random Destination: " << _destination_addresses[rand() % _destination_addresses.size()] << '\n';
-          frame_info = frame_header_formation(&frame_header, 1, _frame_index, destination_address, _source_address, _reserved_field_I, _reserved_field_II, _payload_length, 1);
+          frame_info = frame_header_formation(&frame_header, 1, _frame_index, _destination_address, _source_address, _reserved_field_I, _reserved_field_II, _payload_length, 1);
           std::vector<unsigned char> frame;
           frame.insert(frame.end(), frame_header.begin(), frame_header.end());
           if(_develop_mode)

@@ -49,7 +49,9 @@ namespace gr {
               _update_interval(update_interval),
               _timeout_value(timeout_value),
               _destination_address(destination_address),
-              _sweep_done(false)
+              _sweep_done(false),
+              _virgin(0),
+              _counter(0)
     {
       if(develop_mode)
         std::cout << "develop_mode of Direction mapper is activated." << '\n';
@@ -121,11 +123,11 @@ namespace gr {
       _nodes.insert(received_frame_address);
       double snr = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       double angle = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_II"), not_found));
-      /*if (_develop_mode) {
+      if (_develop_mode) {
         std::cout << "Incoming node address: " << received_frame_address <<'\n';
         std::cout << "SNR: " << snr <<'\n';
         std::cout << "Direction of the destined node : " << angle <<'\n';
-      }*/
+      }
       _node_addresses.push_back(received_frame_address);
       _snr_values.push_back(snr);
       _angle_values.push_back(angle);
@@ -147,16 +149,15 @@ namespace gr {
           used_node_numbers.push_back(_table[i-1].get_node_number());
         }
         for (it = _node_addresses.begin(); it != _node_addresses.end(); it++){
-          int j = 0;
-          while (j < used_node_numbers.size()) {
-            //std::cout << "hellooo" << '\n';
-            while (used_node_numbers[j] == *it) {
+          while (_counter < used_node_numbers.size()) {
+            std::cout << "hellooo" << '\n';
+            while (used_node_numbers[_counter] == *it && it != _node_addresses.end()) {
               it++;
             }
-            j++;
+            _counter++;
           }
           _table[i].set_node_number(*it);
-          //std::cout << "node number: " << *it << '\n';
+          std::cout << "node number: " << *it << '\n';
           if (_table[i].get_node_number() == *it) {
             int index = std::distance(_node_addresses.begin(), it);
             _table[i].insert_snr(_snr_values[index]);
@@ -166,7 +167,6 @@ namespace gr {
           }
         }
         _best_direction_each[i] = find_best_direction(_table[i]);
-        std::cout << "Best Direction for Destination address " << _table[i].get_node_number() << " is: " << _best_direction_each[i] << '\n';
       }
     }
 
@@ -189,18 +189,20 @@ namespace gr {
       _sweep_done = true;
       calculate();
       if (pmt::is_dict(sweep_done)) {
-        _virgin = 8;
+        _virgin = 1;
         pmt::pmt_t number = pmt::car(sweep_done);
         pmt::pmt_t angle = pmt::cdr(sweep_done);
         std::cout << "Sweeping Mode is disabled" << '\n';
         message_port_pub(pmt::mp("best_direction_out"), angle);
       }
-      else if(_virgin != 8) {
+      else if(_virgin != 1) {
         if (_angle_values.size() != 0) {
           if (_nodes.size() > 1) {
             for (size_t i = 0; i < _nodes.size(); i++) {
+              std::cout << "asds" << '\n';
               _best_direction = pmt::cons(pmt::from_long(_table[i].get_node_number()), pmt::from_double(_best_direction_each[i]));
               message_port_pub(pmt::mp("best_direction_out"), _best_direction);
+              std::cout << "Best Direction for Destination address " << _table[i].get_node_number() << " is: " << _best_direction_each[i] << '\n';
             }
           } else {
             _best_direction = pmt::cons(pmt::from_long(_table[0].get_node_number()), pmt::from_double(_best_direction_each[0]));

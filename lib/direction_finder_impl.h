@@ -37,6 +37,7 @@ namespace gr {
        int _destination_address;
        int _virgin;
        bool _sweep_done;
+       int _counter;
        class radio {
          private:
            int node_number;

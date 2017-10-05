@@ -1607,7 +1607,7 @@
     </param>
     <param>
       <key>payload_length</key>
-      <value>100</value>
+      <value>200</value>
     </param>
     <param>
       <key>show</key>
@@ -1729,7 +1729,7 @@
     </param>
     <param>
       <key>buffer_size</key>
-      <value>100</value>
+      <value>500</value>
     </param>
     <param>
       <key>comment</key>
@@ -3081,7 +3081,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>24</value>
+      <value>25</value>
     </param>
   </block>
   <block>
@@ -3235,7 +3235,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>1</value>
+      <value>2</value>
     </param>
   </block>
   <connection>

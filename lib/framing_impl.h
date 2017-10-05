@@ -60,6 +60,7 @@ namespace gr {
       int _internal_index;
       float _snr;
       bool _virgin;
+      bool _trigger;
       std::vector<unsigned int> _node_list;
       std::vector<unsigned int> _slot_list_ms;
       std::vector<int> _destination_addresses;
