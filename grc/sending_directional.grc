@@ -1103,7 +1103,7 @@
     </param>
     <param>
       <key>develop_mode</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -1397,6 +1397,10 @@
       <value>center_frequency</value>
     </param>
     <param>
+      <key>record_on</key>
+      <value>record_on</value>
+    </param>
+    <param>
       <key>_coordinate</key>
       <value>(1352, 72)</value>
     </param>
@@ -1419,10 +1423,6 @@
     <param>
       <key>t_pretx_interval_s</key>
       <value>0</value>
-    </param>
-    <param>
-      <key>record_on</key>
-      <value>record_on</value>
     </param>
     <param>
       <key>sweep_mode</key>
@@ -1478,6 +1478,10 @@
     <param>
       <key>frequency</key>
       <value>center_frequency</value>
+    </param>
+    <param>
+      <key>record_on</key>
+      <value>record_on</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1504,10 +1508,6 @@
       <value>0</value>
     </param>
     <param>
-      <key>record_on</key>
-      <value>record_on</value>
-    </param>
-    <param>
       <key>sweep_mode</key>
       <value>sweep_mode</value>
     </param>
@@ -1563,6 +1563,10 @@
       <value>center_frequency</value>
     </param>
     <param>
+      <key>record_on</key>
+      <value>record_on</value>
+    </param>
+    <param>
       <key>_coordinate</key>
       <value>(1352, 476)</value>
     </param>
@@ -1585,10 +1589,6 @@
     <param>
       <key>t_pretx_interval_s</key>
       <value>0</value>
-    </param>
-    <param>
-      <key>record_on</key>
-      <value>record_on</value>
     </param>
     <param>
       <key>sweep_mode</key>
@@ -1646,6 +1646,10 @@
       <value>center_frequency</value>
     </param>
     <param>
+      <key>record_on</key>
+      <value>record_on</value>
+    </param>
+    <param>
       <key>_coordinate</key>
       <value>(1352, 276)</value>
     </param>
@@ -1668,10 +1672,6 @@
     <param>
       <key>t_pretx_interval_s</key>
       <value>0</value>
-    </param>
-    <param>
-      <key>record_on</key>
-      <value>record_on</value>
     </param>
     <param>
       <key>sweep_mode</key>

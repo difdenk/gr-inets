@@ -39,6 +39,8 @@ namespace gr {
       double _phase_2;
       double _phase_3;
       double _phase_4;
+      int _indicator;
+      int _count;
       std::vector<int> _nodes;
       std::vector<double> _angles;
       pmt::pmt_t _phase_values;

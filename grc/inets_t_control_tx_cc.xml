@@ -68,10 +68,11 @@
     <type>float</type>
   </param>
   <param>
-    <name>Record on</name>
+    <name>Full Range Sweep</name>
     <key>record_on</key>
     <value>record_on</value>
     <type>int</type>
+    <hide>$directional_mode.hide_control</hide>
   </param>
   <param>
     <name>Sweep Mode</name>

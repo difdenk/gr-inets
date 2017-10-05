@@ -116,7 +116,7 @@ namespace gr {
       }
       else
         std::cout << "Nodes are not dict." << '\n';
-        _destination_addresses.push_back(99);
+        _destination_address = 99;
     }
 
     void
@@ -333,11 +333,13 @@ namespace gr {
           {
             _frame_index = pmt::to_long(rx_payload);
           }
-          for (size_t i = 0; i < _destination_addresses.size(); i++) {
+          /*for (size_t i = 0; i < _destination_addresses.size(); i++) {
             std::cout << "Addresses in the vector:" << _destination_addresses[i] << '\n';
-          }
-          _destination_address = _destination_addresses[rand() % _destination_addresses.size()]; // prototype for sending to different destination nodes.
-          frame_info = frame_header_formation(&frame_header, 1, _frame_index, _destination_address, _source_address, _reserved_field_I, _reserved_field_II, _payload_length, 1);
+          }*/
+          int destination_address = _destination_addresses[rand() % _destination_addresses.size()]; // prototype for sending to different destination nodes.
+          //std::cout << "Random Destination: " << destination_address << '\n';
+          //std::cout << "Random Destination: " << _destination_addresses[rand() % _destination_addresses.size()] << '\n';
+          frame_info = frame_header_formation(&frame_header, 1, _frame_index, destination_address, _source_address, _reserved_field_I, _reserved_field_II, _payload_length, 1);
           std::vector<unsigned char> frame;
           frame.insert(frame.end(), frame_header.begin(), frame_header.end());
           if(_develop_mode)

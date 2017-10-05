@@ -97,8 +97,8 @@ namespace gr {
       if (this-> node_number == 0 || this-> node_number > 10 || this-> node_number < 0 ) {
         this->node_number = number;
       }
-      else
-        std::cout << "Node number was already set." << '\n';
+      /*else
+        std::cout << "Node number was already set." << '\n';*/
     }
 
     bool direction_finder_impl::radio::check_node_number(int address) {
@@ -166,7 +166,7 @@ namespace gr {
           }
         }
         _best_direction_each[i] = find_best_direction(_table[i]);
-        std::cout << "best_direction_each: " << _best_direction_each[i] << '\n';
+        std::cout << "Best Direction for Destination address " << _table[i].get_node_number() << " is: " << _best_direction_each[i] << '\n';
       }
     }
 
