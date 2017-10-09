@@ -150,14 +150,14 @@ namespace gr {
         }
         for (it = _node_addresses.begin(); it != _node_addresses.end(); it++){
           while (_counter < used_node_numbers.size()) {
-            std::cout << "hellooo" << '\n';
+            //std::cout << "hellooo" << '\n';
             while (used_node_numbers[_counter] == *it && it != _node_addresses.end()) {
               it++;
             }
             _counter++;
           }
           _table[i].set_node_number(*it);
-          std::cout << "node number: " << *it << '\n';
+          //std::cout << "node number: " << *it << '\n';
           if (_table[i].get_node_number() == *it) {
             int index = std::distance(_node_addresses.begin(), it);
             _table[i].insert_snr(_snr_values[index]);
@@ -187,19 +187,19 @@ namespace gr {
 
     void direction_finder_impl::sweep_done(pmt::pmt_t sweep_done){
       _sweep_done = true;
-      calculate();
       if (pmt::is_dict(sweep_done)) {
         _virgin = 1;
         pmt::pmt_t number = pmt::car(sweep_done);
         pmt::pmt_t angle = pmt::cdr(sweep_done);
-        std::cout << "Sweeping Mode is disabled" << '\n';
+        std::cout << "SWEEPING MODE IS DISABLED !" << '\n';
+        std::cout << "DEFAULT DIRECTION IS " << angle << " DEGREES !" << '\n';
         message_port_pub(pmt::mp("best_direction_out"), angle);
       }
       else if(_virgin != 1) {
+        calculate();
         if (_angle_values.size() != 0) {
           if (_nodes.size() > 1) {
             for (size_t i = 0; i < _nodes.size(); i++) {
-              std::cout << "asds" << '\n';
               _best_direction = pmt::cons(pmt::from_long(_table[i].get_node_number()), pmt::from_double(_best_direction_each[i]));
               message_port_pub(pmt::mp("best_direction_out"), _best_direction);
               std::cout << "Best Direction for Destination address " << _table[i].get_node_number() << " is: " << _best_direction_each[i] << '\n';

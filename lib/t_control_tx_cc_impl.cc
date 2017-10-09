@@ -313,7 +313,7 @@ namespace gr {
       double calibration2 = 0.0523; // 20 degrees offset
       double calibration3 = 0.107; // 42 degrees phase offset
       pmt::pmt_t direction;
-      if (_record_on == 2 && !_initial_message) {
+      if (_record_on == 2 && !_initial_message && _sweep_mode) {
         double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
         double sliding_phase = (_phase - sweep);
         if (sliding_phase >= 0 ) {
