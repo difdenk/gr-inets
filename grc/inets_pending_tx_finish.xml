@@ -122,6 +122,10 @@
     <name>beacon_frame_out</name>
     <type>message</type>
   </source>
+  <!--<source>
+    <name>beacon_reply_frame_out</name>
+    <type>message</type>
+  </source>-->
   <source>
     <name>rts_frame_out</name>
     <type>message</type>

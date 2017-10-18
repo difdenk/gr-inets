@@ -23,49 +23,52 @@
 #endif
 
 #include <gnuradio/io_signature.h>
-#include "phase_shifter_impl.h"
+#include "mux_impl.h"
 
 namespace gr {
   namespace inets {
 
-    phase_shifter::sptr
-    phase_shifter::make(int develop_mode, int block_id, int noutput, double phase_shift)
+    mux::sptr
+    mux::make()
     {
       return gnuradio::get_initial_sptr
-        (new phase_shifter_impl(int develop_mode, int block_id int noutput,double phase_shift);
+        (new mux_impl());
     }
 
     /*
      * The private constructor
      */
-    phase_shifter_impl::phase_shifter_impl(utput, int block_id double phase_shift)
-      : gr::sync_interpolator("phase_shifter",
-              gr::io_signature::make(1, 1, sizeof(gr_complex),
-              gr::io_signature::make(noutput, noutput, sizeof(gr_complex), 4)
-              _develop_mode(develop_mode),
-              _block_id(block_id),
-              _noutput(noutput),
-              _phase_shift(phase_shift)
+    mux_impl::mux_impl()
+      : gr::sync_interpolator("mux",
+              gr::io_signature::make(1, 1, sizeof(gr_complex)),
+              gr::io_signature::make(4, 4, sizeof(gr_complex)), 4)
     {}
 
     /*
      * Our virtual destructor.
      */
-    phase_shifter_impl::~phase_shifter_impl()
+    mux_impl::~mux_impl()
     {
     }
 
     int
-    phase_shifter_impl::work(int noutput_items,
+    mux_impl::work(int noutput_items,
         gr_vector_const_void_star &input_items,
         gr_vector_void_star &output_items)
     {
-      const <+ITYPE+> *in = (const <+ITYPE+> *) input_items[0];
-      <+OTYPE+> *out = (<+OTYPE+> *) output_items[0];
+      const gr_complex *in = (const gr_complex *) input_items[0];
+      gr_complex *out0 = (gr_complex *) output_items[0];
+      gr_complex *out1 = (gr_complex *) output_items[1];
+      gr_complex *out2 = (gr_complex *) output_items[2];
+      gr_complex *out3 = (gr_complex *) output_items[3];
 
       // Do <+signal processing+>
-
-      // Tell runtime system how many output items we produced.
+      for (int i = 0; i < noutput_items; i++) {
+        out0[i] = in[i];
+        out1[i] = in[i];
+        out2[i] = in[i];
+        out3[i] = in[i];
+      }
       return noutput_items;
     }
 

@@ -4,7 +4,7 @@
   <key>inets_t_control_tx_cc</key>
   <category>inets_dmf_phy</category>
   <import>import inets</import>
-  <make>inets.t_control_tx_cc($develop_mode, $block_id, $bps, $t_pretx_interval_s, $record_on, $file_name_extension, $name_with_timestamp)</make>
+  <make>inets.t_control_tx_cc($develop_mode, $block_id, $bps, $t_pretx_interval_s, $record_on, $file_name_extension, $name_with_timestamp, $antenna_number, $frequency, $sweep_mode, $directional_mode)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
@@ -36,6 +36,26 @@
     <type>int</type>
   </param>
   <param>
+    <name>Directional Mode</name>
+    <key>directional_mode</key>
+    <value>directional_mode</value>
+    <type>enum</type>
+    <hide>$directional_mode.hide</hide>
+    <option>
+      <name>off</name>
+      <key>0</key>
+      <opt>hide:part</opt>
+      <opt>hide_control:all</opt>
+    </option>
+    <option>
+      <name>on</name>
+      <key>1</key>
+      <opt>hide:none</opt>
+      <opt>hide_control:none</opt>
+    </option>
+  </param>
+
+  <param>
     <name>bitrate</name>
     <key>bps</key>
     <value>constellation.bits_per_symbol() * (samp_rate / sps)</value>
@@ -48,10 +68,18 @@
     <type>float</type>
   </param>
   <param>
-    <name>Record on</name>
+    <name>Full Range Sweep</name>
     <key>record_on</key>
     <value>record_on</value>
     <type>int</type>
+    <hide>$directional_mode.hide_control</hide>
+  </param>
+  <param>
+    <name>Sweep Mode</name>
+    <key>sweep_mode</key>
+    <value>sweep_mode</value>
+    <type>float</type>
+    <hide>$directional_mode.hide_control</hide>
   </param>
 
   <param>
@@ -68,6 +96,35 @@
     <value>name_with_timestamp</value>
     <type>int</type>
   </param>
+  <param>
+    <name>Which antenna in the array</name>
+    <key>antenna_number</key>
+    <value>antenna_number</value>
+    <type>int</type>
+    <hide>$directional_mode.hide_control</hide>
+    <option>
+      <name>1</name>
+      <key>1</key>
+    </option>
+    <option>
+      <name>2</name>
+      <key>2</key>
+    </option>
+    <option>
+      <name>3</name>
+      <key>3</key>
+    </option>
+    <option>
+      <name>4</name>
+      <key>4</key>
+    </option>
+  </param>
+  <param>
+    <name>Frequency of Operation</name>
+    <key>frequency</key>
+    <value>center_frequency</value>
+    <type>float</type>
+  </param>
 
   <!-- Make one 'sink' node per input. Sub-nodes:
        * name (an identifier for the GUI)
@@ -79,6 +136,13 @@
     <type>complex</type>
   </sink>
 
+  <sink>
+    <name>phase_in</name>
+    <type>message</type>
+    <optional>1</optional>
+  </sink>
+
+
   <!-- Make one 'source' node per output. Sub-nodes:
        * name (an identifier for the GUI)
        * type
@@ -87,5 +151,16 @@
   <source>
     <name>out</name>
     <type>complex</type>
+  </source>
+  <source>
+    <name>sweep_finished</name>
+    <type>message</type>
+    <optional>1</optional>
+  </source>
+
+  <source>
+    <name>direction_out</name>
+    <type>message</type>
+    <optional>1</optional>
   </source>
 </block>

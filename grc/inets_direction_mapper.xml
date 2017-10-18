@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
 <block>
-  <name>dummy_source</name>
-  <key>inets_dummy_source</key>
-  <category>inets_dmf_mac</category>
+  <name>direction_mapper</name>
+  <key>inets_direction_mapper</key>
+  <category>[inets]</category>
   <import>import inets</import>
-  <make>inets.dummy_source($develop_mode, $block_id, $payload_length, $source_type, $packet_rate)</make>
+  <make>inets.direction_mapper($develop_mode, $block_id, $phase_1, $phase_2, $phase_3, $phase_4)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
        * key (makes the value accessible as $keyname, e.g. in the make node)
        * type -->
-  <param>
+
+   <param>
     <name>Develop mode</name>
     <key>develop_mode</key>
     <type>enum</type>
@@ -38,90 +39,44 @@
   <param>
     <name>Block id</name>
     <key>block_id</key>
-    <value>23</value>
+    <value>75</value>
     <type>int</type>
     <hide>$develop_mode.hide_control</hide>
   </param>
 
-  <param>
-    <name>Payload length</name>
-    <key>payload_length</key>
-    <value>100</value>
-    <type>int</type>
-    <hide>part</hide>
-  </param>
-
-  <param>
-    <name>Show stop port</name>
-    <key>show</key>
-    <value>1</value>
-    <type>enum</type>
-    <hide>part</hide>
-    <option>
-      <name>show</name>
-      <key>0</key>
-      <opt>hide:none</opt>
-    </option>
-    <option>
-      <name>hide</name>
-      <key>1</key>
-      <opt>hide:part</opt>
-    </option>
-  </param>
-
-  <param>
-    <name>Source type</name>
-    <key>source_type</key>
-    <type>enum</type>
-    <hide>part</hide>
-    <option>
-      <name>Infinite</name>
-      <key>1</key>
-      <opt>hide:all</opt>
-    </option>
-
-    <option>
-      <name>Constant rate</name>
-      <key>2</key>
-      <opt>hide:part</opt>
-    </option>
-
-    <option>
-      <name>Oneshot</name>
-      <key>3</key>
-      <opt>hide:part</opt>
-    </option>
-
-    <option>
-      <name>Fixed 8 bit Pseudorandom Pattern </name>
-      <key>4</key>
-      <opt>hide:part</opt>
-    </option>
-  </param>
-
-  <param>
-    <name>Packet rate</name>
-    <key>packet_rate</key>
-    <value>1</value>
+ <param>
+    <name>phase_1 in Degrees</name>
+    <key>phase_1</key>
     <type>float</type>
-    <hide>$source_type.hide</hide>
   </param>
+  <param>
+    <name>phase_2 in Degrees</name>
+    <key>phase_2</key>
+    <type>float</type>
+  </param>
+  <param>
+    <name>phase_3 in Degrees</name>
+    <key>phase_3</key>
+    <type>float</type>
+  </param>
+  <param>
+    <name>phase_4 in Degrees</name>
+    <key>phase_4</key>
+    <type>float</type>
+  </param>
+
   <!-- Make one 'sink' node per input. Sub-nodes:
        * name (an identifier for the GUI)
        * type
        * vlen
        * optional (set to 1 for optional inputs) -->
   <sink>
-    <name>trigger</name>
+    <name>frame_in</name>
     <type>message</type>
-    <optional>1</optional>
   </sink>
-
   <sink>
-    <name>stop_in</name>
+    <name>destination_address_check_in</name>
     <type>message</type>
-    <optional>1</optional>
-    <hide>$show</hide>
   </sink>
 
   <!-- Make one 'source' node per output. Sub-nodes:
@@ -130,8 +85,7 @@
        * vlen
        * optional (set to 1 for optional inputs) -->
   <source>
-    <name>output</name>
+    <name>phase_out</name>
     <type>message</type>
-    <optional>1</optional>
   </source>
 </block>

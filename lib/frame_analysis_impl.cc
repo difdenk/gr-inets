@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -53,8 +53,8 @@ namespace gr {
         _len_destination_address(len_destination_address), // Bytes
         _len_source_address(len_source_address), // Bytes
         _len_num_transmission(len_num_transmission), // Bytes
-        _len_reserved_field_I(len_reserved_field_I), // Bytes
-        _len_reserved_field_II(len_reserved_field_II), // Bytes
+        _len_reserved_field_I(sizeof(double)), // Bytes
+        _len_reserved_field_II(sizeof(double)), // Bytes
         _len_payload_length(len_payload_length), // Bytes
         _apply_self_address_check(apply_self_address_check),
         _my_address(my_address)
@@ -80,28 +80,28 @@ namespace gr {
       {
         std::cout << "++++++++  frame_analysis ID: " << _block_id << "  +++++++" << std::endl;
       }
-      if(pmt::is_pair(rx_frame)) 
+      if(pmt::is_pair(rx_frame))
       {
         bool good_frame;
 	pmt::pmt_t not_found;
         pmt::pmt_t meta = pmt::car(rx_frame);
         pmt::pmt_t frame_pmt = pmt::cdr(rx_frame);
-        std::vector<unsigned char> frame_array; 
+        std::vector<unsigned char> frame_array;
         if(pmt::is_u8vector(frame_pmt))
         {
           std::vector<unsigned char> frame_array = pmt::u8vector_elements(frame_pmt);
-          int _frame_length = frame_array.size(); 
+          int _frame_length = frame_array.size();
           pmt::pmt_t frame_info;
           /*
            * frame type check
            */
           int frame_type = static_cast<unsigned>(frame_array[0]);
-          if(frame_type <= 5 && frame_type > 0)
+          if((frame_type <= 5 && frame_type > 0) || frame_type == 10)
           {
             frame_info = frame_decompose(frame_pmt, frame_type);
-	    if(pmt::to_long(pmt::dict_ref(frame_info, pmt::string_to_symbol("self_address_check"), not_found)))
+	          if(pmt::to_long(pmt::dict_ref(frame_info, pmt::string_to_symbol("self_address_check"), not_found)))
               message_port_pub(pmt::mp("frame_info_out"), frame_info);
-	    else
+	          else
               if(_develop_mode == 1)
                 std::cout << "no output self frame." << std::endl;
           }
@@ -113,7 +113,7 @@ namespace gr {
         else
           std::cout << "pmt is not a u8vector" << std::endl;
       }
-      else 
+      else
         std::cout << "pmt is not a pair" << std::endl;
     }
 
@@ -128,7 +128,7 @@ namespace gr {
       int delimiter_length = get_ampdu_delimiter_length();
       std::vector<unsigned char> delimiter_array;
       delimiter_array.insert(delimiter_array.end(), frame_array.begin(), frame_array.begin() + delimiter_length);
-      // Get reserved field ampdu 
+      // Get reserved field ampdu
       int reserved_field_ampdu_pos = _len_frame_type;
       std::vector<unsigned char> reserved_field_ampdu_array(delimiter_array.begin() + reserved_field_ampdu_pos, delimiter_array.begin() + reserved_field_ampdu_pos + _len_reserved_field_I);
       int reserved_field_ampdu = BytesToint(reserved_field_ampdu_array);
@@ -136,12 +136,12 @@ namespace gr {
       int mpdu_length_pos = reserved_field_ampdu_pos + _len_reserved_field_I;
       std::vector<unsigned char> mpdu_length_array(delimiter_array.begin() + mpdu_length_pos, delimiter_array.begin() + mpdu_length_pos + _len_payload_length);
       int mpdu_length = BytesToint(mpdu_length_array);
-      
+
       if(_develop_mode)
         std::cout << "mpdu length: " << mpdu_length << " delimiter_length: " << delimiter_length << std::endl;
       int number_aggregation = floor(frame_array.size() / (mpdu_length + delimiter_length));
       if(_develop_mode == 1)
-      {	
+      {
         std::cout << "++++++ AMPDU frame with " << number_aggregation << " mpdu ++++++" << number_aggregation << std::endl;
         std::cout << "reserved_field_ampdu: " << reserved_field_ampdu << std::endl;
         std::cout << "mpdu length: " << mpdu_length << std::endl;
@@ -167,34 +167,39 @@ namespace gr {
 	}
 	else
 	  std::cout << "no output self frame." << std::endl;
-      } 
-    }	     
+      }
+    }
 
     int
     frame_analysis_impl::get_frame_header_length()
     {
       return _len_frame_type + _len_frame_index + _len_destination_address + _len_source_address + _len_num_transmission + _len_reserved_field_I + _len_reserved_field_II + _len_payload_length;
-    } 
+    }
 
     int
     frame_analysis_impl::get_ampdu_delimiter_length()
     {
       return _len_frame_type + _len_reserved_field_I + _len_payload_length;
-    } 
+    }
 
-    int 
+    int
     frame_analysis_impl::BytesToint(std::vector<unsigned char> bytes)
     {
       int int_num = 0;
       int size = bytes.size();
-      for(int i = 0; i < size; ++i)  
+      for(int i = 0; i < size; ++i)
       {
         int_num = static_cast<int>(bytes.back() << ((size - i - 1) * 8)) + int_num;
         bytes.pop_back();
-      } 
+      }
       return int_num;
     }
-    
+    template <typename T> T& frame_analysis_impl::from_bytes(const std::vector<unsigned char> &bytes, T& object) {
+      unsigned char* begin_object = reinterpret_cast<unsigned char*>(boost::addressof(object));
+      std::copy(bytes.begin(), bytes.end(), begin_object) ;
+      return object;
+    }
+
     pmt::pmt_t
     frame_analysis_impl::frame_decompose(pmt::pmt_t frame_pmt, int frame_type)
     {
@@ -210,14 +215,14 @@ namespace gr {
       int index_pos = _len_frame_type;
       std::vector<unsigned char> frame_index_array(frame_header_array.begin() + index_pos, frame_header_array.begin() + index_pos + _len_frame_index);
       // disp_vec(frame_index_array);
-      int frame_index = BytesToint(frame_index_array);
+      int frame_index = from_bytes(frame_index_array, frame_index);
 
       // Get destination address
       int dest_pos = index_pos + _len_frame_index;
       std::vector<unsigned char> dest_array(frame_header_array.begin() + dest_pos, frame_header_array.begin() + dest_pos + _len_destination_address);
       //disp_vec(dest_array);
-      int destination_address = BytesToint(dest_array);
-      
+      int destination_address = from_bytes<int>(dest_array, destination_address);
+
       // Get source address
       int src_pos = dest_pos + _len_destination_address;
       std::vector<unsigned char> src_array(frame_header_array.begin() + src_pos, frame_header_array.begin() + src_pos + _len_source_address);
@@ -235,30 +240,38 @@ namespace gr {
       std::vector<unsigned char> ntrans_array(frame_header_array.begin() + ntrans_pos, frame_header_array.begin() + ntrans_pos + _len_num_transmission);
       //disp_vec(ntrans_array);
       int num_transmission = BytesToint(ntrans_array);
-      
+
       // Get reserved field I
       int re_I_pos = ntrans_pos + _len_num_transmission;
       std::vector<unsigned char> re_I_array(frame_header_array.begin() + re_I_pos, frame_header_array.begin() + re_I_pos + _len_reserved_field_I);
       //disp_vec(re_I_array);
-      int reserved_field_I = BytesToint(re_I_array);
-      
+      double reserved_field_I = from_bytes(re_I_array, reserved_field_I);
+
       // Get reserved field II
       int re_II_pos = re_I_pos + _len_reserved_field_I;
       std::vector<unsigned char> re_II_array(frame_header_array.begin() + re_II_pos, frame_header_array.begin() + re_II_pos + _len_reserved_field_II);
       //disp_vec(re_II_array);
-      int reserved_field_II = BytesToint(re_II_array);
-      
+      double reserved_field_II = from_bytes(re_II_array, reserved_field_II);
+
       // Get payload length
       int payload_length_pos = re_II_pos + _len_reserved_field_II;
       std::vector<unsigned char> payload_length_array(frame_header_array.begin() + payload_length_pos, frame_header_array.begin() + payload_length_pos + _len_payload_length);
       //disp_vec(payload_length_array);
       int payload_length = BytesToint(payload_length_array);
-      
+
       // Get payload
       int payload_pos = payload_length_pos + _len_payload_length;
       std::vector<unsigned char> payload_array(frame_array.begin() + payload_pos, frame_array.begin() + payload_pos + payload_length);
       // payload of rts or cts is the nav time
       int nav_time_us = 0;
+      /*
+      int snr;
+      std::vector<unsigned char> snr_array;
+      if(frame_type == 2) {
+        std::vector<unsigned char> snr_array(frame_header_array.end()-3, frame_header_array.end());
+        int snr = BytesToint(snr_array);
+      }
+      */
       if(frame_type == 4 || frame_type == 5)
       {
         nav_time_us = BytesToint(payload_array);
@@ -277,11 +290,12 @@ namespace gr {
         std::cout << "destination address is: " << destination_address << std::endl;
         std::cout << "source address is: " << source_address << std::endl;
         std::cout << "number of transmission is: " << num_transmission << std::endl;
-        std::cout << "reserved field I is: " << reserved_field_I << std::endl;
-        std::cout << "reserved field II is: " << reserved_field_II << std::endl;
+        std::cout << "SNR is: " << reserved_field_I << std::endl;
+        std::cout << "Angle is: " << reserved_field_II << std::endl;
         std::cout << "payload length is: " << payload_length << std::endl;
         std::cout << "frame header length is: " << header_length << std::endl;
         std::cout << "self address check is: " << self_address_check << std::endl;
+        //std::cout << "SNR is: " << snr << std::endl;
         if(frame_type == 4 || frame_type == 5)
           std::cout << "nav time is: " << nav_time_us << "us" << std::endl;
         std::cout << "frame verification (good_frame) is initialized to: " << is_good_frame << std::endl;
@@ -303,21 +317,21 @@ namespace gr {
         pmt::pmt_t meta = pmt::make_dict();
         pmt::pmt_t frame_header_array_u8vector = pmt::init_u8vector(header_length, frame_header_array);
         pmt::pmt_t frame_header_array_pmt = pmt::cons(meta, frame_header_array_u8vector);
-      
+
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("frame_type"), pmt::from_long(frame_type));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("frame_index"), pmt::from_long(frame_index));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("destination_address"), pmt::from_long(destination_address));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("source_address"), pmt::from_long(source_address));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("num_transmission"), pmt::from_long(num_transmission));
-        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_I"), pmt::from_long(reserved_field_I));
-        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_II"), pmt::from_long(reserved_field_II));
+        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_I"), pmt::from_double(reserved_field_I));
+        frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("reserved_field_II"), pmt::from_double(reserved_field_II));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("payload_length"), pmt::from_long(payload_length));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("header_length"), pmt::from_long(header_length));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("self_address_check"),pmt::from_long(1));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("address_check"),pmt::from_long(0));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("good_frame"),pmt::from_long(is_good_frame));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("nav_time"),pmt::from_long(nav_time_us));
-        struct timeval t; 
+        struct timeval t;
         gettimeofday(&t, NULL);
         double current_time = t.tv_sec + t.tv_usec / 1000000.0;
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("analysis_time"),pmt::from_double(current_time));
@@ -333,11 +347,11 @@ namespace gr {
           else
             std::cout << "* header analysis ID: " << _block_id << " get the ack frame of the " << num_transmission <<"th transmission of data frame "<< frame_index << " at time " << current_time << " s" << std::endl;
         }
-      } 
+      }
       return frame_info;
     }
 
-    void 
+    void
     frame_analysis_impl::disp_vec(std::vector<unsigned char> vec)
     {
       for(int i=0; i<vec.size(); ++i)
@@ -347,4 +361,3 @@ namespace gr {
 
   } /* namespace inets */
 } /* namespace gr */
-

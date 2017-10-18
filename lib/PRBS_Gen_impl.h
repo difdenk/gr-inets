@@ -18,30 +18,23 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_INETS_antenna_array_controller_IMPL_H
-#define INCLUDED_INETS_antenna_array_controller_IMPL_H
+#ifndef INCLUDED_INETS_PRBS_GEN_IMPL_H
+#define INCLUDED_INETS_PRBS_GEN_IMPL_H
 
-#include <inets/antenna_array_controller.h>
+#include <inets/PRBS_Gen.h>
 
 namespace gr {
   namespace inets {
 
-    class antenna_array_controller_impl : public antenna_array_controller
+    class PRBS_Gen_impl : public PRBS_Gen
     {
      private:
-      int _develop_mode;
-      int _block_id;
-      int _noutput;
-      double _phase_shift;
-      tag_t _packet_len_tag;
-      int _count;
-
+      std::vector<uint8_t> _reference;
+      std::vector<uint8_t> generate();
 
      public:
-      antenna_array_controller_impl(int develop_mode, int block_id, int noutput, double phase_shift);
-      ~antenna_array_controller_impl();
-      void shift_the_phase(gr_complex &temp);
-      int prepare_output_tag(std::vector<tag_t> &tags_in);
+      PRBS_Gen_impl(int develop_mode);
+      ~PRBS_Gen_impl();
 
       // Where all the action really happens
       int work(int noutput_items,
@@ -52,4 +45,4 @@ namespace gr {
   } // namespace inets
 } // namespace gr
 
-#endif /* INCLUDED_INETS_antenna_array_controller_IMPL_H */
+#endif /* INCLUDED_INETS_PRBS_GEN_IMPL_H */

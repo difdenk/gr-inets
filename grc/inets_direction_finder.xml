@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<block>
+  <name>direction_finder</name>
+  <key>inets_direction_finder</key>
+  <category>[inets]</category>
+  <import>import inets</import>
+  <make>inets.direction_finder($develop_mode, $update_interval, $timeout_value, $destination_address)</make>
+  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
+       Sub-nodes:
+       * name
+       * key (makes the value accessible as $keyname, e.g. in the make node)
+       * type -->
+  <param>
+    <name>develop_mode</name>
+    <key>develop_mode</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>update_interval</name>
+    <key>update_interval</key>
+    <type>float</type>
+  </param>
+
+  <param>
+    <name>timeout_value</name>
+    <key>timeout_value</key>
+    <type>float</type>
+  </param>
+
+  <param>
+    <name>destination_address</name>
+    <key>destination_address</key>
+    <type>int</type>
+  </param>
+
+  <!-- Make one 'sink' node per input. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <sink>
+    <name>beacon_reply_in</name>
+    <type>message</type>
+  </sink>
+  <sink>
+    <name>sweep_done_in</name>
+    <type>message</type>
+  </sink>
+
+  <!-- Make one 'source' node per output. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <source>
+    <name>best_direction_out</name>
+    <type>message</type>
+  </source>
+</block>

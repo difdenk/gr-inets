@@ -19,11 +19,11 @@
  */
 
 
-#ifndef INCLUDED_INETS_ANTENNA_PHASE_SHIFTER_H
-#define INCLUDED_INETS_ANTENNA_PHASE_SHIFTER_H
+#ifndef INCLUDED_INETS_BITS_TO_MSG_H
+#define INCLUDED_INETS_BITS_TO_MSG_H
 
 #include <inets/api.h>
-#include <gnuradio/sync_interpolator.h>
+#include <gnuradio/sync_block.h>
 
 namespace gr {
   namespace inets {
@@ -33,24 +33,24 @@ namespace gr {
      * \ingroup inets
      *
      */
-    class INETS_API antenna_phase_shifter : virtual public gr::sync_interpolator
+    class INETS_API bits_to_msg : virtual public gr::sync_block
     {
      public:
-      typedef boost::shared_ptr<antenna_phase_shifter> sptr;
+      typedef boost::shared_ptr<bits_to_msg> sptr;
 
       /*!
-       * \brief Return a shared_ptr to a new instance of inets::antenna_phase_shifter.
+       * \brief Return a shared_ptr to a new instance of inets::bits_to_msg.
        *
-       * To avoid accidental use of raw pointers, inets::antenna_phase_shifter's
+       * To avoid accidental use of raw pointers, inets::bits_to_msg's
        * constructor is in a private implementation
-       * class. inets::antenna_phase_shifter::make is the public interface for
+       * class. inets::bits_to_msg::make is the public interface for
        * creating new instances.
        */
-      static sptr make(int develop_mode, int block_id, int noutput, double phase_shift);
+      static sptr make(int develop_mode, int type, double placeholder0, double placeholder1);
     };
 
   } // namespace inets
 } // namespace gr
 
-#endif /* INCLUDED_INETS_ANTENNA_PHASE_SHIFTER_H */
+#endif /* INCLUDED_INETS_BITS_TO_MSG_H */
 

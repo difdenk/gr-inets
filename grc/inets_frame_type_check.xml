@@ -207,9 +207,9 @@
       <opt>hide:part</opt>
     </option>
   </param>
-  
+
   <param>
-    <name>Other frame</name>
+    <name>Beacon Reply Frame</name>
     <key>other_frame</key>
     <value>1</value>
     <type>enum</type>
@@ -291,7 +291,7 @@
     <hide>$amsdu_frame</hide>
   </source>
   <source>
-    <name>other_frame_info_out</name>
+    <name>beacon_reply_frame_info_out</name>
     <type>message</type>
     <optional>1</optional>
     <hide>$other_frame</hide>

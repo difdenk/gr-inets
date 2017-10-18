@@ -34,6 +34,24 @@
       <opt>hide:none</opt>
       <opt>hide_control:none</opt>
     </option>
+    <option>
+      <name>Bit Error Rate</name>
+      <key>3</key>
+      <opt>hide:none</opt>
+      <opt>hide_control:none</opt>
+    </option>
+    <option>
+      <name>Packet Error Rate</name>
+      <key>4</key>
+      <opt>hide:none</opt>
+      <opt>hide_control:none</opt>
+    </option>
+    <option>
+      <name>BER and PER</name>
+      <key>5</key>
+      <opt>hide:none</opt>
+      <opt>hide_control:none</opt>
+    </option>
   </param>
 
   <param>

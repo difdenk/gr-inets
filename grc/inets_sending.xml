@@ -4,7 +4,7 @@
   <key>inets_sending</key>
   <category>inets_dmf_mac</category>
   <import>import inets</import>
-  <make>inets.sending(develop_mode=$develop_mode, block_id=$block_id, constellation=$constellation, preamble=$preamble, samp_rate=$samp_rate, sps=$sps, system_time_granularity_us=$system_time_granularity_us, usrp_device_address=$usrp_device_address, center_frequency=$center_frequency, interframe_interval_s=$interframe_interval_s, t_pretx_interval_s=$t_pretx_interval_s, file_name_extension_t_control=$file_name_extension_t_control, file_name_extension_pending=$file_name_extension_pending, record_on=$record_on, name_with_timestamp=$name_with_timestamp, tx_gain=$tx_gain)</make>
+  <make>inets.sending(develop_mode=$develop_mode, block_id=$block_id, constellation=$constellation, preamble=$preamble, samp_rate=$samp_rate, sps=$sps, system_time_granularity_us=$system_time_granularity_us, usrp_device_address=$usrp_device_address, center_frequency=$center_frequency, interframe_interval_s=$interframe_interval_s, t_pretx_interval_s=$t_pretx_interval_s, file_name_extension_t_control=$file_name_extension_t_control, file_name_extension_pending=$file_name_extension_pending, record_on=$record_on, name_with_timestamp=$name_with_timestamp, tx_gain=$tx_gain, phase=$phase,sweep_mode=$sweep_mode)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
@@ -113,6 +113,22 @@
     <key>tx_gain</key>
     <value>0</value>
     <type>raw</type>
+    <hide>part</hide>
+  </param>
+
+  <param>
+    <name>Sweep Mode</name>
+    <key>sweep_mode</key>
+    <value>sweep_mode</value>
+    <type>float</type>
+    <hide>part</hide>
+  </param>
+
+  <param>
+    <name>Transmission Direction in Degrees</name>
+    <key>phase</key>
+    <value>phase</value>
+    <type>float</type>
     <hide>part</hide>
   </param>
 
@@ -234,6 +250,22 @@
       <opt>hide:none</opt>
     </option>
   </param>
+  <!--<param>
+    <name>Show Beacon Reply frame</name>
+    <key>beacon_reply_frame</key>
+    <type>enum</type>
+    <hide>$beacon_reply_frame.hide</hide>
+    <option>
+      <name>No</name>
+      <key>1</key>
+      <opt>hide:part</opt>
+    </option>
+    <option>
+      <name>Yes</name>
+      <key>0</key>
+      <opt>hide:none</opt>
+    </option>
+  </param>-->
   <param>
     <name>Show RTS frame</name>
     <key>rts_frame</key>
@@ -374,6 +406,12 @@
     <optional>1</optional>
     <hide>$beacon_frame</hide>
   </source>
+  <!--<source>
+    <name>beacon_reply_frame_out</name>
+    <type>message</type>
+    <optional>1</optional>
+    <hide>$beacon_reply_frame</hide>
+  </source>-->
   <source>
     <name>rts_frame_out</name>
     <type>message</type>

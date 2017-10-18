@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -34,13 +34,13 @@ namespace gr {
       // Nothing to declare in this block.
       int _develop_mode;
       int _block_id;
-      int _frame_type; 
+      int _frame_type;
       int _len_frame_type; // Bytes
       int _frame_index;
       int _len_frame_index; // Bytes
       int _destination_address;
       int _len_destination_address; // Bytes
-      int _source_address; 
+      int _source_address;
       int _len_source_address; // Bytes
       int _len_num_transmission;
       int _reserved_field_I;
@@ -55,6 +55,7 @@ namespace gr {
       int get_frame_header_length();
       int get_ampdu_delimiter_length();
       int BytesToint(std::vector<unsigned char> bytes);
+      template<typename T> T& from_bytes(const std::vector<unsigned char> &bytes,T& object);
       pmt::pmt_t frame_decompose(pmt::pmt_t frame_pmt, int frame_type);
       void ampdu_decompose(pmt::pmt_t frame_pmt, int frame_type);
       void disp_vec(std::vector<unsigned char> vec);
@@ -69,4 +70,3 @@ namespace gr {
 } // namespace gr
 
 #endif /* INCLUDED_INETS_FRAME_ANALYSIS_IMPL_H */
-

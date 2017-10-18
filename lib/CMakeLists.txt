@@ -97,7 +97,12 @@ list(APPEND inets_sources
     cmd_switch_impl.cc
     cmd_port_control_impl.cc
     parameter_list_impl.cc
-    antenna_array_controller_impl.cc )
+    antenna_array_controller_impl.cc
+    mux_impl.cc
+    direction_mapper_impl.cc
+    bits_to_msg_impl.cc
+    PRBS_Gen_impl.cc
+    direction_finder_impl.cc )
 
 set(inets_sources "${inets_sources}" PARENT_SCOPE)
 if(NOT inets_sources)

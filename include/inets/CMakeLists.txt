@@ -94,6 +94,11 @@ install(FILES
     cmd_switch.h
     cmd_port_control.h
     parameter_list.h
-    antenna_array_controller.h DESTINATION include/inets
+    antenna_array_controller.h
+    mux.h
+    direction_mapper.h
+    bits_to_msg.h
+    PRBS_Gen.h
+    direction_finder.h DESTINATION include/inets
 
 )

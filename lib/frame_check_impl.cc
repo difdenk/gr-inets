@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -46,7 +46,10 @@ namespace gr {
               gr::io_signature::make(0, 0, 0),
               gr::io_signature::make(0, 0, 0)),
        _block_id(block_id),
-       _develop_mode(develop_mode)
+       _develop_mode(develop_mode),
+       _reference_payload(generate()),
+       _error(0),
+       _success(0)
     {
       if(_develop_mode)
         std::cout << "develop_mode of frame_check ID: " << _block_id << " is activated." << std::endl;
@@ -64,14 +67,14 @@ namespace gr {
     {
     }
 
-    void 
+    void
     frame_check_impl::check_frame(pmt::pmt_t frame_info)
     {
       if(_develop_mode == 1)
       {
         std::cout << "++++++  frame_check ID: " << _block_id << "  ++++++++" << std::endl;
       }
-      if(pmt::dict_has_key(frame_info, pmt::string_to_symbol("frame_pmt"))) 
+      if(pmt::dict_has_key(frame_info, pmt::string_to_symbol("frame_pmt")))
       {
         int is_good_frame;
         pmt::pmt_t not_found;
@@ -103,7 +106,7 @@ namespace gr {
         // header_length
         pmt::pmt_t header_length_pmt = pmt::dict_ref(frame_info, pmt::string_to_symbol("header_length"), not_found);
         int header_length = pmt::to_long(header_length_pmt);
-	
+
         pmt::pmt_t frame_pmt = pmt::dict_ref(frame_info, pmt::string_to_symbol("frame_pmt"), not_found);
         // rx_frame without crc in vector form
         std::vector<unsigned char> frame_array = pmt::u8vector_elements(pmt::cdr(frame_pmt));
@@ -112,25 +115,26 @@ namespace gr {
         std::vector<unsigned char> payload_vector;
         payload_vector.insert(payload_vector.end(), frame_for_recrc_vector.begin() + header_length, frame_for_recrc_vector.end());
         pmt::pmt_t frame_for_recrc_pmt = pmt::init_u8vector(frame_for_recrc_vector.size(), frame_for_recrc_vector);
-        pmt::pmt_t meta = pmt::make_dict();        
+        pmt::pmt_t meta = pmt::make_dict();
         pmt::pmt_t frame_before_recrc_pmt = pmt::cons(meta, frame_for_recrc_pmt);
         pmt::pmt_t frame_after_recrc_pmt = crc32_bb_calc(frame_before_recrc_pmt);
         std::vector<unsigned char> frame_after_recrc_vector = pmt::u8vector_elements(pmt::cdr(frame_after_recrc_pmt));
         is_good_frame = (frame_after_recrc_vector == frame_array);
-
+        // BER Calculation//
+        ber_calculate(payload_vector);
         if(_develop_mode == 2)
         {
-          struct timeval t; 
+          struct timeval t;
           gettimeofday(&t, NULL);
           double current_time = t.tv_sec - double(int(t.tv_sec/100)*100) + t.tv_usec / 1000000.0;
           std::cout << "* frame verification ID: " << _block_id << " verifies frame at time " << current_time << " s" << std::endl;
         }
-        if(_develop_mode)
+        if(_develop_mode != 3 && _develop_mode)
         {
           std::cout << "received frame with crc32 bytes (last four): ";
-	  disp_vec(frame_array);
+	        disp_vec(frame_array);
           std::cout << "frame with recalculated crc32 bytes : ";
-	  disp_vec(frame_after_recrc_vector);
+	        disp_vec(frame_after_recrc_vector);
 		/*
           std::cout << "dict has key frame_type: " << pmt::dict_has_key(frame_info, pmt::string_to_symbol("frame_type")) << " with value: " << frame_type << std::endl;
           std::cout << "dict has key frame_index: " << pmt::dict_has_key(frame_info, pmt::string_to_symbol("frame_index")) << " with value: " << frame_index << std::endl;
@@ -143,24 +147,21 @@ namespace gr {
           std::cout << "Frame verification result: " << is_good_frame << ", (1: passed, 0: failed)" << std::endl;
         }
         pmt::pmt_t payload_u8vector = pmt::init_u8vector(payload_vector.size(), payload_vector);
-        pmt::pmt_t payload = pmt::cons(meta, payload_u8vector); 
+        pmt::pmt_t payload = pmt::cons(meta, payload_u8vector);
         frame_info = pmt::dict_delete(frame_info, pmt::string_to_symbol("good_frame"));
         frame_info = pmt::dict_add(frame_info, pmt::string_to_symbol("good_frame"), pmt::from_long(is_good_frame));
-	if(is_good_frame)
-	{
+	      if(is_good_frame)
+	      {
           message_port_pub(pmt::mp("good_frame_info_out"), frame_info);
           message_port_pub(pmt::mp("payload_out"), payload);
-	}
+	      }
         else
           message_port_pub(pmt::mp("bad_frame_info_out"), frame_info);
-          
-      }
-      else 
-        std::cout << "pmt is not a dict" << std::endl;
+        }
+        else
+          std::cout << "pmt is not a dict" << std::endl;
     }
-    
-    pmt::pmt_t
-    frame_check_impl::crc32_bb_calc(pmt::pmt_t msg)
+    pmt::pmt_t frame_check_impl::crc32_bb_calc(pmt::pmt_t msg)
     {
       // extract input pdu
       pmt::pmt_t meta(pmt::car(msg));
@@ -180,9 +181,9 @@ namespace gr {
 
       pmt::pmt_t output = pmt::init_u8vector(pkt_len+4, bytes_out); // this copies the values from bytes_out into the u8vector
       return pmt::cons(meta, output);
-    } 
+    }
 
-    void 
+    void
     frame_check_impl::disp_vec(std::vector<unsigned char> vec)
     {
       for(int i=0; i<vec.size(); ++i)
@@ -190,6 +191,39 @@ namespace gr {
       std::cout << ". total length is: " << vec.size() << std::endl;
     }
 
+    void frame_check_impl::ber_calculate(std::vector<unsigned char> payload_vector) {
+      std::vector<uint8_t> received_payload = payload_vector;
+      for (size_t i = 0; i < received_payload.size(); i++) {
+        if (received_payload[i] == _reference_payload[i]) {
+          _success++;
+        }
+        else
+          _error++;
+      }
+      double total_bits_received = _error + _success;
+      double error = _error;
+      double BER = error/total_bits_received;
+      if (_develop_mode == 3) {
+        std::cout << "Total number of bits Received: " << total_bits_received << '\n';
+        std::cout << "Erronous Bits: " << _error << '\n';
+        std::cout << "BER: " << BER << '\n';
+      }
+    }
+
+    std::vector<uint8_t> frame_check_impl::generate() {
+      uint8_t start_state = 0x01;  /* Any nonzero start state will work. */
+      uint8_t lfsr = start_state;
+      uint8_t bit;
+      std::vector<uint8_t> payload;
+      payload.push_back(start_state);
+      do
+      {
+        bit  = ((lfsr >> 0) ^ (lfsr >> 1)) & 1; // Polynomial is x^7 + x^6 + 1
+        lfsr =  (lfsr >> 1) | (bit << 6);
+        payload.push_back(lfsr);
+      } while (lfsr != start_state);
+      return payload;
+      }
+
   } /* namespace inets */
 } /* namespace gr */
-

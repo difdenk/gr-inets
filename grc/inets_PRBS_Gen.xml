@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<block>
+  <name>PRBS_Gen</name>
+  <key>inets_PRBS_Gen</key>
+  <category>[inets]</category>
+  <import>import inets</import>
+  <make>inets.PRBS_Gen($develop_mode)</make>
+  <!-- Make one 'param' node for every Parameter you want settable from the GUI.
+       Sub-nodes:
+       * name
+       * key (makes the value accessible as $keyname, e.g. in the make node)
+       * type -->
+  <param>
+    <name>develop_mode</name>
+    <key>develop_mode</key>
+    <type>int</type>
+  </param>
+
+
+  <!-- Make one 'source' node per output. Sub-nodes:
+       * name (an identifier for the GUI)
+       * type
+       * vlen
+       * optional (set to 1 for optional inputs) -->
+  <source>
+    <name>out</name>
+    <type>byte</type>
+  </source>
+</block>

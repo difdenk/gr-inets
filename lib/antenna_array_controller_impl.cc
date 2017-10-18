@@ -29,7 +29,9 @@
 #include <iostream>
 #include <cmath>
 #include <complex>
-
+#include <uhd/types/time_spec.hpp>
+#include <sys/time.h>
+#include <ctime>
 
 namespace gr {
   namespace inets {
@@ -51,11 +53,11 @@ namespace gr {
               _develop_mode(develop_mode),
               _block_id(block_id),
               _noutput(noutput),
-              _phase_shift(phase_shift)
-
+              _phase_shift(phase_shift),
+              _count(1)
     {
       if(_develop_mode)
-      std::cout << "Develop mode is activated" << '\n';
+      std::cout << "develop mode of array_phase_controller ID: " << _block_id << "is activated" << std::endl;
     }
 
     /*
@@ -65,14 +67,7 @@ namespace gr {
     {
     }
 
-    void antenna_array_controller_impl::shift_the_phase(gr_complex &temp){
-      double magn = abs(temp);
-      double shifted_arg = arg(temp) + _phase_shift;
-      temp = std::polar(magn, shifted_arg);
-    }
-
-    int
-    antenna_array_controller_impl::work(int noutput_items,
+    int antenna_array_controller_impl::work(int noutput_items,
         gr_vector_const_void_star &input_items,
         gr_vector_void_star &output_items)
     {
@@ -81,6 +76,12 @@ namespace gr {
       gr_complex *out1 = (gr_complex*) output_items[1];
       gr_complex *out2 = (gr_complex*) output_items[2];
       gr_complex *out3 = (gr_complex*) output_items[3];
+      std::vector<tag_t> tags_in;
+      get_tags_in_range(tags_in, 0, nitems_read(0), nitems_read(0) + noutput_items, pmt::string_to_symbol("packet_len"));
+      //set_tag_propagation_policy(TPP_DONT);
+      std::cout << "tags_in.size: "<< tags_in.size() << '\n';
+      std::cout << "number of times work function is called: "<< antenna_array_controller_impl::_count << '\n';
+      antenna_array_controller_impl::_count++;
 
       // Do <+signal processing+>
       //Shift the phases of the signal for each port seperately
@@ -88,6 +89,7 @@ namespace gr {
         out0[i] = in[i];
         if(_develop_mode){
           //std::cout << "out0 = " << *out0 << std::endl;
+          //std::cout << "number of noutput_items" << noutput_items << '\n';
         }
       }
       for (int i=0 ; i < noutput_items ; i++){
@@ -120,27 +122,65 @@ namespace gr {
           //std::cout << "out3 = " << *out3 << std::endl;
         }
       }
-      std::vector<tag_t> tags_in;
-      get_tags_in_range(tags_in, 0, nitems_read(0), nitems_read(0) + noutput_items);
+      std::cout << "after sp" << '\n';
+      if(prepare_output_tag(tags_in)){
+        static const pmt::pmt_t time_key = pmt::string_to_symbol("tx_time");
+        // Get the time
+        struct timeval t;
+        gettimeofday(&t, NULL);
+        double tx_time = t.tv_sec + t.tv_usec / 1000000.0;
+        uhd::time_spec_t now = uhd::time_spec_t(tx_time);
+        // the value of the tag is a tuple
+        const pmt::pmt_t time_value = pmt::make_tuple(
+          pmt::from_uint64(now.get_full_secs()),
+          pmt::from_double(now.get_frac_secs())
+        );
 
-      if (_develop_mode) {
-        if (!tags_in.empty()) {
-          std::cout << "There are Tags on the stream !" << '\n';
-          /*for (int i = 0; i < tags_in.size(); i++) {
-            std::cout << "The tags on the Input Port" << '\n';
-            std::cout << "Index of tags: " << i << std::endl;
-            std::cout << "Offset: " << tags_in[i].offset << std::endl;
-            std::cout << "Key: " << tags_in[i].key << std::endl;
-            std::cout << "Value: " << tags_in[i].value << std::endl;
-            std::cout << "Srcid: " << tags_in[i].srcid << std::endl;
-            std::cout << '\n';
-          }*/
-        } else {
-          std::cout << "There are NO Tags on the stream !" << '\n';
-        }
+        add_item_tag(0, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(1, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(2, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(3, (_packet_len_tag.offset), time_key, time_value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(0, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(1, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(2, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
+        add_item_tag(3, (_packet_len_tag.offset), _packet_len_tag.key, _packet_len_tag.value, pmt::string_to_symbol("antenna_array_controller"));
+        //add_item_tag(0, _count*1000, pmt::string_to_symbol("deneme_key"), pmt::string_to_symbol("deneme_value"));
+        //////For Debugging Purposes
+        std::cout << "inside the function" << '\n';
+        //std::cout << _packet_len_tag.key << '\n';
+        std::cout << "packet_len value : " << _packet_len_tag.value << '\n';
+        std::cout << "packet_len offset : " << _packet_len_tag.offset << '\n';
+        /////
       }
+
+      /*if (_develop_mode) {
+        if(!tags_in.empty()){
+          std::cout << "There are tags on the stream !" << '\n';
+        }
+        else
+        std::cout << "There are NO tags on this stream !" << '\n';
+      }*/
+
       // Tell runtime system how many output items we produced.
       return noutput_items;
+    }
+    void antenna_array_controller_impl::shift_the_phase(gr_complex &temp){
+      double magn = abs(temp);
+      double shifted_arg = arg(temp) + _phase_shift;
+      temp = std::polar(magn, shifted_arg);
+    }
+    int antenna_array_controller_impl::prepare_output_tag(std::vector<tag_t> &tags_in){
+      int tag_detected = 0;
+      for (int i = 0; i < tags_in.size(); i++) {
+        if (pmt::symbol_to_string(tags_in[i].key) == "packet_len" ) {
+          _packet_len_tag = tags_in[i];
+          tag_detected = 1;
+          std::cout << "found packet len tag" << std::endl;
+          break;
+        }
+
+        return tag_detected;
+      }
     }
 
   } /* namespace inets */

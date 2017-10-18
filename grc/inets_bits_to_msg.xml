@@ -1,19 +1,37 @@
 <?xml version="1.0"?>
 <block>
-  <name>phase_shifter</name>
-  <key>inets_phase_shifter</key>
+  <name>bits_to_msg</name>
+  <key>inets_bits_to_msg</key>
   <category>[inets]</category>
   <import>import inets</import>
-  <make>inets.phase_shifter($utput, $phase_shift)</make>
+  <make>inets.bits_to_msg($develop_mode, $type, $placeholder0, $placeholder1)</make>
   <!-- Make one 'param' node for every Parameter you want settable from the GUI.
        Sub-nodes:
        * name
        * key (makes the value accessible as $keyname, e.g. in the make node)
        * type -->
   <param>
-    <name>...</name>
-    <key>...</key>
-    <type>...</type>
+    <name>develop_mode</name>
+    <key>develop_mode</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>type</name>
+    <key>type</key>
+    <type>int</type>
+  </param>
+
+  <param>
+    <name>placeholder1</name>
+    <key>placeholder1</key>
+    <type>float</type>
+  </param>
+
+  <param>
+    <name>placeholder0</name>
+    <key>placeholder0</key>
+    <type>float</type>
   </param>
 
   <!-- Make one 'sink' node per input. Sub-nodes:
@@ -23,8 +41,14 @@
        * optional (set to 1 for optional inputs) -->
   <sink>
     <name>in</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
+    <type>byte</type>
   </sink>
+
+  <sink>
+    <name>trigger</name>
+    <type>message</type>
+  </sink>
+
 
   <!-- Make one 'source' node per output. Sub-nodes:
        * name (an identifier for the GUI)
@@ -32,7 +56,7 @@
        * vlen
        * optional (set to 1 for optional inputs) -->
   <source>
-    <name>out</name>
-    <type><!-- e.g. int, float, complex, byte, short, xxx_vector, ...--></type>
+    <name>output</name>
+    <type>message</type>
   </source>
 </block>

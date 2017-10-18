@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * Copyright 2016 <+YOU OR YOUR COMPANY+>.
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street,
@@ -71,7 +71,7 @@ namespace gr {
       }
       pmt::pmt_t not_found;
       int received_frame_address = pmt::to_long(pmt::dict_ref(frame_info, pmt::string_to_symbol("destination_address"), not_found));
-      int is_my_address = (_my_address == received_frame_address);
+      int is_my_address = (_my_address == received_frame_address || received_frame_address == 99);
       if(_develop_mode == 1)
         std::cout << "My address is " << _my_address << " and rx frame address is " << received_frame_address << ". Frame check is: " << is_my_address << " (1: passed, 2: failed)." << std::endl;
       frame_info = pmt::dict_delete(frame_info, pmt::string_to_symbol("address_check"));
@@ -87,7 +87,7 @@ namespace gr {
       }
       if(_develop_mode == 2)
       {
-        struct timeval t; 
+        struct timeval t;
         gettimeofday(&t, NULL);
         double current_time = t.tv_sec - double(int(t.tv_sec/100)*100) + t.tv_usec / 1000000.0;
         std::cout << "* address check ID: " << _block_id << " finish header analysis at time " << current_time << " s" << std::endl;
@@ -96,4 +96,3 @@ namespace gr {
 
   } /* namespace inets */
 } /* namespace gr */
-

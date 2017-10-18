@@ -18,31 +18,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_INETS_PHASE_SHIFTER_IMPL_H
-#define INCLUDED_INETS_PHASE_SHIFTER_IMPL_H
 
-#include <inets/phase_shifter.h>
+#ifndef INCLUDED_INETS_DIRECTION_FINDER_H
+#define INCLUDED_INETS_DIRECTION_FINDER_H
+
+#include <inets/api.h>
+#include <gnuradio/block.h>
 
 namespace gr {
   namespace inets {
 
-    class phase_shifter_impl : public phase_shifter
+    /*!
+     * \brief <+description of block+>
+     * \ingroup inets
+     *
+     */
+    class INETS_API direction_finder : virtual public gr::block
     {
-     private:
-      // Nothing to declare in this block.
-
      public:
-      phase_shifter_impl(utput, int block_id double phase_shift);
-      ~phase_shifter_impl();
+      typedef boost::shared_ptr<direction_finder> sptr;
 
-      // Where all the action really happens
-      int work(int noutput_items,
-         gr_vector_const_void_star &input_items,
-         gr_vector_void_star &output_items);
+      /*!
+       * \brief Return a shared_ptr to a new instance of inets::direction_finder.
+       *
+       * To avoid accidental use of raw pointers, inets::direction_finder's
+       * constructor is in a private implementation
+       * class. inets::direction_finder::make is the public interface for
+       * creating new instances.
+       */
+      static sptr make(int develop_mode, double update_interval, double timeout_value, int destination_address);
     };
 
   } // namespace inets
 } // namespace gr
 
-#endif /* INCLUDED_INETS_PHASE_SHIFTER_IMPL_H */
+#endif /* INCLUDED_INETS_DIRECTION_FINDER_H */
 
