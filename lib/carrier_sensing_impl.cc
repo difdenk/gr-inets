@@ -1,17 +1,17 @@
 /* -*- c++ -*- */
-/* 
+/*
  * copyright 2016 <+you or your company+>.
- * 
+ *
  * this is free software; you can redistribute it and/or modify
  * it under the terms of the gnu general public license as published by
  * the free software foundation; either version 3, or (at your option)
  * any later version.
- * 
+ *
  * this software is distributed in the hope that it will be useful,
  * but without any warranty; without even the implied warranty of
  * merchantability or fitness for a particular purpose.  see the
  * gnu general public license for more details.
- * 
+ *
  * you should have received a copy of the gnu general public license
  * along with this software; see the file copying.  if not, write to
  * the free software foundation, inc., 51 franklin street,
@@ -105,7 +105,7 @@ namespace gr {
         if(_develop_mode)
           std::cout << "cs duration of carrier_sensing block ID " << _block_id << " is reset to " << _cs_duration << " according to CogMAC protocol " << std::endl;
       }
-      else   
+      else
       {
         std::cout << "error: carrier_sensing block ID " << _block_id << " can only reassign cs_duration to a integer number (in [ms])." << std::endl;
       }
@@ -116,7 +116,7 @@ namespace gr {
       if(pmt::is_real(power_in))
       {
         double power = pmt::to_double(power_in);
-        // _cca true means the channel is free 
+        // _cca true means the channel is free
         if(_nf_initial_n > 0)
         {
           _nf_initial_n--;
@@ -133,7 +133,7 @@ namespace gr {
             _noise_floor.pop_back();
           }
           double rx_sens = pow(10, double(_rx_sensitivity_dB)/10);
-          _cs_threshold = _cs_threshold / len * rx_sens;
+          _cs_threshold = (_cs_threshold / len) * rx_sens;
           if(_develop_mode)
             std::cout << " rx_sensitivity is " << rx_sens << " and the noise floor is " << _cs_threshold << std::endl;
           _nf_initial_n = -1;
@@ -141,6 +141,14 @@ namespace gr {
         else
         {
           _cca = (_cs_threshold > power);
+          if (_develop_mode) {
+            int v = rand() % 1000;
+            if (v < 3) {
+              std::cout << "Channel situation: " << _cca << '\n';
+              std::cout << "RSS: " << power << '\n';
+              std::cout << "CS threshold: " << _cs_threshold << '\n';
+            }
+          }
         }
         if(_develop_mode == 3)
         {
@@ -149,12 +157,12 @@ namespace gr {
           double current_time = t.tv_sec - double(int(t.tv_sec/100)*100) + t.tv_usec / 1000000.0;
           std::cout << "in carrier sensing, average rx power is: " << power << ", received at " << current_time << " s" << std::endl;
         }
-        
+
       }
       else
         std::cout << "carrier_sensing ID " << _block_id << " error: not valid power signal" << std::endl;
     }
-    
+
 
     void carrier_sensing_impl::stop_sensing(pmt::pmt_t cmd_in)
     {
@@ -174,7 +182,7 @@ namespace gr {
         if(pmt::is_dict(cmd_in))
         {
           if(_develop_mode == 1 || _develop_mode == 2)
-            std::cout << "+++++++++ cs ID: " << _block_id << " in mode continuous  +++++++++" << std::endl;    
+            std::cout << "+++++++++ cs ID: " << _block_id << " in mode continuous  +++++++++" << std::endl;
           _stop_sensing = false;
           boost::thread thrd(&carrier_sensing_impl::continuous_sensing, this);
         }
@@ -190,10 +198,10 @@ namespace gr {
         if(pmt::is_dict(cmd_in))
         {
           if(_develop_mode == 1 || _develop_mode == 2)
-            std::cout << "+++++++++ cs ID: " << _block_id << " in mode Oneshot  +++++++++" << std::endl;    
+            std::cout << "+++++++++ cs ID: " << _block_id << " in mode Oneshot  +++++++++" << std::endl;
           // this function is fired
           pmt::pmt_t not_found;
-          int frame_type = pmt::to_long(pmt::dict_ref(cmd_in, pmt::string_to_symbol("frame_type"), not_found)); 
+          int frame_type = pmt::to_long(pmt::dict_ref(cmd_in, pmt::string_to_symbol("frame_type"), not_found));
           if(frame_type == 1)
           {
             _cmd = cmd_in;
@@ -220,12 +228,12 @@ namespace gr {
         if(pmt::is_dict(cmd_in))
         {
           if(_develop_mode == 1 || _develop_mode == 2)
-            std::cout << "carrier_sensing ID: " << _block_id << " start sensing in mode fix duration at " << "time " << current_time << "s" << std::endl;    
+            std::cout << "carrier_sensing ID: " << _block_id << " start sensing in mode fix duration at " << "time " << current_time << "s" << std::endl;
           // this function is fired
           pmt::pmt_t not_found;
           if(pmt::dict_has_key(cmd_in, pmt::string_to_symbol("frame_type")))
           {
-            int frame_type = pmt::to_long(pmt::dict_ref(cmd_in, pmt::string_to_symbol("frame_type"), not_found)); 
+            int frame_type = pmt::to_long(pmt::dict_ref(cmd_in, pmt::string_to_symbol("frame_type"), not_found));
             if(frame_type == 1)
             {
               _cmd = cmd_in;
@@ -262,10 +270,10 @@ namespace gr {
         if(pmt::is_dict(cmd_in))
         {
           if(_develop_mode == 1 || _develop_mode == 2)
-            std::cout << "+++++++++ cs ID: " << _block_id << " in mode unlimited +++++++++" << std::endl;    
+            std::cout << "+++++++++ cs ID: " << _block_id << " in mode unlimited +++++++++" << std::endl;
           // this function is fired
           pmt::pmt_t not_found;
-          int frame_type = pmt::to_long(pmt::dict_ref(cmd_in, pmt::string_to_symbol("frame_type"), not_found)); 
+          int frame_type = pmt::to_long(pmt::dict_ref(cmd_in, pmt::string_to_symbol("frame_type"), not_found));
           if(frame_type == 1)
           {
             _cmd = cmd_in;
@@ -295,11 +303,13 @@ namespace gr {
       gettimeofday(&t, NULL);
       double current_time = t.tv_sec + t.tv_usec / 1000000.0;
       double start_time = t.tv_sec + t.tv_usec / 1000000.0;
+      //std::cout << "_in_CCA" << _in_cca << '\n';
       while(_in_cca)
       {
-        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us)); 
+        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us));
         gettimeofday(&t, NULL);
         current_time = t.tv_sec + t.tv_usec / 1000000.0;
+        _in_cca = false;
       }
       if(_cca)
       {
@@ -323,7 +333,7 @@ namespace gr {
       double start_time = t.tv_sec + t.tv_usec / 1000000.0;
       while(!_stop_sensing && _cca)
       {
-        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us)); 
+        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us));
         gettimeofday(&t, NULL);
         current_time = t.tv_sec + t.tv_usec / 1000000.0;
       }
@@ -352,7 +362,7 @@ namespace gr {
       double start_time = t.tv_sec + t.tv_usec / 1000000.0;
       while(1)
       {
-        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us)); 
+        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us));
         gettimeofday(&t, NULL);
         current_time = t.tv_sec + t.tv_usec / 1000000.0;
         if(_cca)
@@ -380,7 +390,7 @@ namespace gr {
 //      std::cout << ((current_time < start_time + _cs_duration / 1000) && _in_cca) << std::endl;
       while((current_time < start_time + _cs_duration / 1000) && _cca)
       {
-        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us)); 
+        boost::this_thread::sleep(boost::posix_time::microseconds(_system_time_granularity_us));
         gettimeofday(&t, NULL);
         current_time = t.tv_sec + t.tv_usec / 1000000.0;
 //        std::cout << "current sensing time is: " << current_time - start_time - _cs_duration / 1000 << std::endl;
@@ -405,4 +415,3 @@ namespace gr {
     }
   } /* namespace inets */
 } /* namespace gr */
-

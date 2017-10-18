@@ -276,6 +276,9 @@ namespace gr {
         if (_antenna_number == 1) {
           if (pmt::dict_has_key(phase_in, pmt::string_to_symbol("phase_key1"))) {
             _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key1"), not_found));
+            std::cout << "*********************" << '\n';
+            std::cout << "****CURRENT PHASE**** " << _phase*180/_PI << '\n';
+            std::cout << "*********************" << '\n';
             if (_develop_mode) {
               std::cout << "dict has the key" << '\n';
             }
@@ -313,7 +316,7 @@ namespace gr {
       double calibration2 = 0.0523; // 20 degrees offset
       double calibration3 = 0.107; // 42 degrees phase offset
       pmt::pmt_t direction;
-      if (_record_on == 2 && !_initial_message) {
+      if (_record_on == 2 && !_initial_message && _sweep_mode) {
         double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
         double sliding_phase = (_phase - sweep);
         if (sliding_phase >= 0 ) {

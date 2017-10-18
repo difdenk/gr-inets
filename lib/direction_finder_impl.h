@@ -32,12 +32,17 @@ namespace gr {
     {
      private:
        int _develop_mode;
-       double _update_interval;
-       double _timeout_value;
        int _destination_address;
        int _virgin;
-       bool _sweep_done;
        int _counter;
+       double _update_interval;
+       double _timeout_value;
+       double _average_snr;
+       double _difference;
+       bool _sweep_done;
+       bool _ack_received;
+       bool _first_time;
+       bool _search_mode;
        class radio {
          private:
            int node_number;
@@ -47,19 +52,26 @@ namespace gr {
            radio();
            ~radio();
            void insert_snr(double element);
+           void clean_the_node(std::vector<int> &n, std::vector<double> &s, std::vector<double> &a);
+           std::vector<double>::iterator get_last_snr();
            void insert_angle(double element);
            std::vector<double>::iterator find_max_snr();
            double find_coresponding_angle(std::vector<double>::iterator it);
+           double get_moving_average(std::vector<double>::iterator it, int update);
            void set_node_number(int number);
            bool check_node_number(int address);
            int get_node_number();
        };
        pmt::pmt_t _best_direction;
        std::vector<double> _best_direction_each;
+       std::vector<double> _average_snr_each;
        std::set<int> _nodes;
        std::vector<radio> _table;
+       std::vector<radio> _table_ack;
        std::vector<int> _node_addresses;
+       std::vector<int> _node_addresses_ack;
        std::vector<double> _snr_values;
+       std::vector<double> _snr_values_ack;
        std::vector<double> _angle_values;
        std::vector<double>::iterator _biggest;
 
@@ -69,7 +81,10 @@ namespace gr {
       double find_best_direction(radio input);
       void sweep_done(pmt::pmt_t sweep_done);
       void generate_node_table(pmt::pmt_t beacon_reply_in);
+      void generate_ack_table(pmt::pmt_t ack_in);
       void calculate();
+      void sort();
+
     };
 
   } // namespace inets

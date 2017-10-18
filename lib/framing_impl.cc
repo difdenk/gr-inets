@@ -116,6 +116,9 @@ namespace gr {
         int address = pmt::to_long(pmt::car(nodes_in));
         _destination_addresses.push_back(address);
       }
+      else if(pmt::is_complex(nodes_in)) {
+        std::cout << "Location is changing." << '\n';
+      }
       else {
         std::cout << "Nodes are not dict." << '\n';
         _destination_addresses.push_back(99);
@@ -716,7 +719,7 @@ namespace gr {
         if (_develop_mode) {
           std::cout << "SNR: " << snr << '\n';
         }
-        if (!_virgin && _frame_type == 10) {
+        if ((!_virgin && _frame_type == 10) || (!_virgin && _frame_type == 2)) {
           _reserved_field_I = snr;
         }
         //std::cout << "SNR: " << _reserved_field_I << '\n';
