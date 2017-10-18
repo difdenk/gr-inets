@@ -544,11 +544,11 @@
     </param>
     <param>
       <key>type</key>
-      <value>intx</value>
+      <value>eng_float</value>
     </param>
     <param>
       <key>value</key>
-      <value>400000000</value>
+      <value>2.4e9</value>
     </param>
   </block>
   <block>
@@ -991,6 +991,61 @@
     <param>
       <key>import</key>
       <value>import numpy</value>
+    </param>
+  </block>
+  <block>
+    <key>inets_antenna_array_controller</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>block_id</key>
+      <value>4</value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>develop_mode</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1368, 104)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>inets_antenna_array_controller_0</value>
+    </param>
+    <param>
+      <key>maxoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>minoutbuf</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>noutput</key>
+      <value>4</value>
+    </param>
+    <param>
+      <key>phase_shift</key>
+      <value>0.78539816339</value>
     </param>
   </block>
   <block>
@@ -2138,7 +2193,7 @@
     </param>
     <param>
       <key>center_freq1</key>
-      <value>0</value>
+      <value>center_frequency</value>
     </param>
     <param>
       <key>norm_gain1</key>
@@ -2146,7 +2201,7 @@
     </param>
     <param>
       <key>gain1</key>
-      <value>0</value>
+      <value>tx_gain</value>
     </param>
     <param>
       <key>ant20</key>
@@ -2358,7 +2413,7 @@
     </param>
     <param>
       <key>center_freq2</key>
-      <value>0</value>
+      <value>center_frequency</value>
     </param>
     <param>
       <key>norm_gain2</key>
@@ -2366,7 +2421,7 @@
     </param>
     <param>
       <key>gain2</key>
-      <value>0</value>
+      <value>tx_gain</value>
     </param>
     <param>
       <key>ant30</key>
@@ -2418,7 +2473,7 @@
     </param>
     <param>
       <key>center_freq3</key>
-      <value>0</value>
+      <value>center_frequency</value>
     </param>
     <param>
       <key>norm_gain3</key>
@@ -2426,7 +2481,7 @@
     </param>
     <param>
       <key>gain3</key>
-      <value>0</value>
+      <value>tx_gain</value>
     </param>
     <param>
       <key>ant4</key>
@@ -2574,7 +2629,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(1400, 96)</value>
+      <value>(1744, 4)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2590,7 +2645,7 @@
     </param>
     <param>
       <key>clock_source0</key>
-      <value></value>
+      <value>external</value>
     </param>
     <param>
       <key>sd_spec0</key>
@@ -2598,11 +2653,11 @@
     </param>
     <param>
       <key>time_source0</key>
-      <value></value>
+      <value>external</value>
     </param>
     <param>
       <key>clock_source1</key>
-      <value></value>
+      <value>external</value>
     </param>
     <param>
       <key>sd_spec1</key>
@@ -2610,7 +2665,7 @@
     </param>
     <param>
       <key>time_source1</key>
-      <value></value>
+      <value>external</value>
     </param>
     <param>
       <key>clock_source2</key>
@@ -2686,11 +2741,11 @@
     </param>
     <param>
       <key>nchan</key>
-      <value>1</value>
+      <value>4</value>
     </param>
     <param>
       <key>num_mboards</key>
-      <value>1</value>
+      <value>2</value>
     </param>
     <param>
       <key>samp_rate</key>
@@ -2714,7 +2769,7 @@
     </param>
     <param>
       <key>sync</key>
-      <value>pc_clock</value>
+      <value>sync</value>
     </param>
     <param>
       <key>len_tag_name</key>
@@ -2808,7 +2863,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>"addr=10.0.0.6"</value>
+      <value>"addr0=192.168.10.2, addr1=192.168.10.3"</value>
     </param>
   </block>
   <connection>
@@ -2846,6 +2901,30 @@
     <sink_block_id>root_raised_cosine_filter_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_antenna_array_controller_0</source_block_id>
+    <sink_block_id>uhd_usrp_sink_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_antenna_array_controller_0</source_block_id>
+    <sink_block_id>uhd_usrp_sink_0</sink_block_id>
+    <source_key>1</source_key>
+    <sink_key>1</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_antenna_array_controller_0</source_block_id>
+    <sink_block_id>uhd_usrp_sink_0</sink_block_id>
+    <source_key>2</source_key>
+    <sink_key>2</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_antenna_array_controller_0</source_block_id>
+    <sink_block_id>uhd_usrp_sink_0</sink_block_id>
+    <source_key>3</source_key>
+    <sink_key>3</sink_key>
   </connection>
   <connection>
     <source_block_id>inets_decouple_frame_info_0</source_block_id>
@@ -2921,13 +3000,13 @@
   </connection>
   <connection>
     <source_block_id>inets_t_control_tx_cc_0</source_block_id>
-    <sink_block_id>inets_pending_tx_finish_0</sink_block_id>
+    <sink_block_id>inets_antenna_array_controller_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
   <connection>
     <source_block_id>inets_t_control_tx_cc_0</source_block_id>
-    <sink_block_id>uhd_usrp_sink_0</sink_block_id>
+    <sink_block_id>inets_pending_tx_finish_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>
