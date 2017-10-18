@@ -35,12 +35,17 @@ namespace gr {
      public:
       direction_mapper_impl(int develop_mode, int block_id, double phase_1, double phase_2, double phase_3, double phase_4);
       ~direction_mapper_impl();
+      bool _sweep_done;
+      bool _side;
+      double _corresponding_angle;
+      double _difference;
       double _phase_1;
       double _phase_2;
       double _phase_3;
       double _phase_4;
       int _indicator;
       int _count;
+      int _node_number;
       std::vector<int> _nodes;
       std::vector<double> _angles;
       pmt::pmt_t _phase_values;
@@ -50,6 +55,7 @@ namespace gr {
       pmt::pmt_t _phase_key4;
       void accept_frame(pmt::pmt_t trigger);
       void check_destination(pmt::pmt_t frame_in);
+      void track_movement(pmt::pmt_t track);
     };
 
   } // namespace inets

@@ -50,15 +50,23 @@ namespace gr {
               _timeout_value(timeout_value),
               _destination_address(destination_address),
               _sweep_done(false),
+              _first_time(true),
               _virgin(0),
-              _counter(0)
+              _counter(0),
+              _average_snr(0),
+              _ack_received(false),
+              _search_mode(false),
+              _difference(0)
     {
       if(develop_mode)
         std::cout << "develop_mode of Direction mapper is activated." << '\n';
       message_port_register_out(pmt::mp("best_direction_out"));
+      message_port_register_out(pmt::mp("movement_tracker_out"));
       message_port_register_in(pmt::mp("beacon_reply_in"));
+      message_port_register_in(pmt::mp("ack_in"));
       message_port_register_in(pmt::mp("sweep_done_in"));
       set_msg_handler(pmt::mp("beacon_reply_in"), boost::bind(&direction_finder_impl::generate_node_table, this, _1));
+      set_msg_handler(pmt::mp("ack_in"), boost::bind(&direction_finder_impl::generate_ack_table, this, _1));
       set_msg_handler(pmt::mp("sweep_done_in"), boost::bind(&direction_finder_impl::sweep_done, this, _1));
     }
 
@@ -81,8 +89,34 @@ namespace gr {
       this->snr_radio.push_back(element);
     }
 
+    void direction_finder_impl::radio::clean_the_node(std::vector<int> &n, std::vector<double> &s, std::vector<double> &a) {
+      this->snr_radio.clear();
+      this->angle_radio.clear();
+      n.clear();
+      s.clear();
+      a.clear();
+    }
+
     void direction_finder_impl::radio::insert_angle(double element) {
       this->angle_radio.push_back(element);
+    }
+
+    double direction_finder_impl::radio::get_moving_average(std::vector<double>::iterator it, int update){
+      //std::cout << "The value of the last snr according to the iterator: " << *it << '\n';
+      //std::cout << "The value of the beginning snr according to the iterator: " << *(it - update/2) << '\n';
+      std::vector<double> avrgVec(it - update / 4, it);
+      double sum = 0;
+      for (size_t i = 0; i < avrgVec.size(); i++) {
+        sum = sum + avrgVec[i];
+      }
+      double average = sum / avrgVec.size();
+      std::cout << "Current Average SNR: " << average << '\n';
+      return average;
+    }
+
+    std::vector<double>::iterator direction_finder_impl::radio::get_last_snr() {
+      return this->snr_radio.end()-1;
+
     }
 
     std::vector<double>::iterator direction_finder_impl::radio::find_max_snr(){
@@ -123,7 +157,7 @@ namespace gr {
       _nodes.insert(received_frame_address);
       double snr = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       double angle = pmt::to_double(pmt::dict_ref(beacon_reply_in, pmt::string_to_symbol("reserved_field_II"), not_found));
-      if (_develop_mode) {
+      if (_develop_mode && !_sweep_done) {
         std::cout << "Incoming node address: " << received_frame_address <<'\n';
         std::cout << "SNR: " << snr <<'\n';
         std::cout << "Direction of the destined node : " << angle <<'\n';
@@ -131,6 +165,103 @@ namespace gr {
       _node_addresses.push_back(received_frame_address);
       _snr_values.push_back(snr);
       _angle_values.push_back(angle);
+      if (_sweep_done && _ack_received ) {
+        std::cout << "INCOMING SNR" << snr << '\n';
+        std::cout << "INCOMING ANGLE" << angle << '\n';
+        double snr_difference = snr - _average_snr_each[0];
+        std::cout << " BEACON SNR DIFFERENCE: "<< snr_difference << '\n';
+        if (snr_difference > - _difference + 1.5) {
+          _difference = 0;
+          std::cout << "Node is assumed to be moving !" << '\n';
+          std::cout << "Tracking... " << '\n';
+          std::cout << "New node location is at : " << angle << " degrees." << '\n';
+          sweep_done(pmt::pmt_from_complex(received_frame_address, angle));
+          _average_snr_each[0] = snr;
+          std::cout << "Antennas are Set !!" << '\n';
+          _search_mode = false;
+        }
+      }
+    }
+
+    void direction_finder_impl::generate_ack_table(pmt::pmt_t ack_in) {
+      //_average_snr++;
+      //std::cout << _average_snr << " times this function is called." << '\n';
+      int update_interval = _update_interval;
+      int timeout_value = _timeout_value;
+      pmt::pmt_t not_found = pmt::from_long(7);
+      int received_frame_address = pmt::to_long(pmt::dict_ref(ack_in, pmt::string_to_symbol("source_address"), not_found));
+      _nodes.insert(received_frame_address);
+      double snr = pmt::to_double(pmt::dict_ref(ack_in, pmt::string_to_symbol("reserved_field_I"), not_found));
+      if (_develop_mode) {
+        std::cout << "Incoming node address: " << received_frame_address <<'\n';
+        std::cout << "SNR: " << snr <<'\n';
+      }
+      _node_addresses_ack.push_back(received_frame_address);
+      _snr_values_ack.push_back(snr);
+      if (_snr_values_ack.size() > update_interval) {
+        sort();
+        _snr_values_ack.erase(_snr_values_ack.begin());
+        _node_addresses_ack.erase(_node_addresses_ack.begin());
+      }
+    }
+
+    void direction_finder_impl::sort() {
+      _table_ack.clear();
+      int timer = rand()%40;
+      int initial_size = _nodes.size();
+      //std::cout << "initial_size: " << initial_size << '\n';
+      for (size_t i = 0; i < initial_size; i++) {
+        radio newRadio;
+        _table_ack.push_back(newRadio);
+        double newAvrg;
+        _average_snr_each.push_back(newAvrg);
+      }
+      std::vector<int>::iterator it;
+      for (int i = 0; i < initial_size; i++) {
+        std::vector<int> used_node_numbers;
+        if (i != 0) {
+          used_node_numbers.push_back(_table[i-1].get_node_number());
+        }
+        for (it = _node_addresses_ack.begin(); it != _node_addresses_ack.end(); it++){
+          while (_counter < used_node_numbers.size()) {
+            //std::cout << "hellooo" << '\n';
+            while (used_node_numbers[_counter] == *it && it != _node_addresses.end()) {
+              it++;
+            }
+            _counter++;
+          }
+          _table_ack[i].set_node_number(*it);
+          //std::cout << "node number: " << *it << '\n';
+          if (_table_ack[i].get_node_number() == *it) {
+            int index = std::distance(_node_addresses_ack.begin(), it);
+            //std::cout << "index: " << index << '\n';
+            _table_ack[i].insert_snr(_snr_values_ack[index]);
+            //std::cout << "snr: "  << _snr_values_ack[index] << '\n';
+          }
+        }
+        if ((_first_time != false || (_first_time == false && timer == 7)) && !_search_mode) {
+          _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval);
+          std::cout << "Default Average: " << _average_snr_each[i] << '\n';
+        }
+        std::vector<double>::iterator ptr = _table[i].find_max_snr();
+        _difference = _average_snr_each[i] - _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval);
+        //int v = rand()%100;
+        /*if (v < 50) {
+          std::cout << "MAX SNR: " << *ptr <<'\n';
+        }*/
+        std::cout << "Difference in SNR: " << _difference << '\n';
+        if (_difference > 3) {
+          _search_mode = true;
+          _ack_received = true;
+          std::cout << "SNR is dropping !!" << '\n';
+          std::cout << "The node other is possibly moving !!" << '\n';
+          pmt::pmt_t change_direction = pmt::cons(pmt::from_long(_table_ack[i].get_node_number()), pmt::from_double(_difference));
+          message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
+          boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+          message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
+        }
+      }
+      _first_time = false;
     }
 
     void direction_finder_impl::calculate(){
@@ -194,6 +325,14 @@ namespace gr {
         std::cout << "SWEEPING MODE IS DISABLED !" << '\n';
         std::cout << "DEFAULT DIRECTION IS " << angle << " DEGREES !" << '\n';
         message_port_pub(pmt::mp("best_direction_out"), angle);
+      }
+      else if (pmt::is_complex(sweep_done)) {
+        std::complex<double> ID = pmt::to_complex(sweep_done);
+        int node = std::real(ID);
+        double angle = std::imag(ID);
+        _best_direction = pmt::pmt_from_complex(node, angle);
+        message_port_pub(pmt::mp("best_direction_out"), _best_direction);
+        std::cout << "New best Direction for Destination address " << node << " is: " << angle << '\n';
       }
       else if(_virgin != 1) {
         calculate();

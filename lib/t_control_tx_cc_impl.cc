@@ -276,6 +276,7 @@ namespace gr {
         if (_antenna_number == 1) {
           if (pmt::dict_has_key(phase_in, pmt::string_to_symbol("phase_key1"))) {
             _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key1"), not_found));
+            std::cout << "****CURRENT PHASE**** " << _phase*180/_PI << '\n';
             if (_develop_mode) {
               std::cout << "dict has the key" << '\n';
             }

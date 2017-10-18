@@ -990,7 +990,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(8, 284)</value>
+      <value>(8, 300)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1021,7 +1021,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(8, 220)</value>
+      <value>(8, 252)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1887,6 +1887,49 @@
     <param>
       <key>label</key>
       <value>direction_in</value>
+    </param>
+    <param>
+      <key>num_streams</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>optional</key>
+      <value>False</value>
+    </param>
+    <param>
+      <key>type</key>
+      <value>message</value>
+    </param>
+    <param>
+      <key>vlen</key>
+      <value>1</value>
+    </param>
+  </block>
+  <block>
+    <key>pad_source</key>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(96, 220)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>pad_source_0_1_0</value>
+    </param>
+    <param>
+      <key>label</key>
+      <value>movement_tracker_in</value>
     </param>
     <param>
       <key>num_streams</key>
@@ -3628,6 +3671,12 @@
     <sink_block_id>inets_direction_mapper_0</sink_block_id>
     <source_key>out</source_key>
     <sink_key>frame_in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>pad_source_0_1_0</source_block_id>
+    <sink_block_id>inets_direction_mapper_0</sink_block_id>
+    <source_key>out</source_key>
+    <sink_key>movement_tracker_in</sink_key>
   </connection>
   <connection>
     <source_block_id>root_raised_cosine_filter_0</source_block_id>

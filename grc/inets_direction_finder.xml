@@ -44,6 +44,10 @@
     <type>message</type>
   </sink>
   <sink>
+    <name>ack_in</name>
+    <type>message</type>
+  </sink>
+  <sink>
     <name>sweep_done_in</name>
     <type>message</type>
   </sink>
@@ -55,6 +59,11 @@
        * optional (set to 1 for optional inputs) -->
   <source>
     <name>best_direction_out</name>
+    <type>message</type>
+  </source>
+
+  <source>
+    <name>movement_tracker_out</name>
     <type>message</type>
   </source>
 </block>
