@@ -605,7 +605,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(680, 368)</value>
+      <value>(704, 376)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1004,7 +1004,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(288, 288)</value>
+      <value>(288, 304)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1635,7 +1635,7 @@
     </param>
     <param>
       <key>update_interval</key>
-      <value>2</value>
+      <value>20</value>
     </param>
   </block>
   <block>
@@ -1666,7 +1666,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(456, 232)</value>
+      <value>(392, 232)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2407,7 +2407,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(744, 572)</value>
+      <value>(712, 572)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2733,7 +2733,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(224, 544)</value>
+      <value>(248, 544)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2888,7 +2888,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(632, 212)</value>
+      <value>(632, 228)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -2971,7 +2971,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(48, 472)</value>
+      <value>(64, 472)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -3211,7 +3211,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>20</value>
+      <value>13</value>
     </param>
   </block>
   <block>
@@ -3254,7 +3254,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(480, 336)</value>
+      <value>(480, 328)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -3465,6 +3465,18 @@
     <sink_key>suspend_timer_in</sink_key>
   </connection>
   <connection>
+    <source_block_id>inets_direction_finder_0</source_block_id>
+    <sink_block_id>directional_sending_0</sink_block_id>
+    <source_key>movement_tracker_out</source_key>
+    <sink_key>movement_tracker_in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_direction_finder_0</source_block_id>
+    <sink_block_id>inets_framing_1</sink_block_id>
+    <source_key>movement_tracker_out</source_key>
+    <sink_key>data_in</sink_key>
+  </connection>
+  <connection>
     <source_block_id>inets_dummy_source_0</source_block_id>
     <sink_block_id>inets_framing_0_0</sink_block_id>
     <source_key>output</source_key>
@@ -3523,6 +3535,12 @@
     <sink_block_id>inets_counter_0_0_1</sink_block_id>
     <source_key>ack_frame_info_out</source_key>
     <sink_key>message_in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_frame_type_check_0</source_block_id>
+    <sink_block_id>inets_direction_finder_0</sink_block_id>
+    <source_key>ack_frame_info_out</source_key>
+    <sink_key>ack_in</sink_key>
   </connection>
   <connection>
     <source_block_id>inets_frame_type_check_0</source_block_id>
