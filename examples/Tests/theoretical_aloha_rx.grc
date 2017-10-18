@@ -120,7 +120,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(624, 84)</value>
+      <value>(616, 76)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -409,7 +409,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>10</value>
+      <value>20</value>
     </param>
   </block>
   <block>
@@ -424,7 +424,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(512, 68)</value>
+      <value>(520, 68)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -451,7 +451,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(784, 84)</value>
+      <value>(760, 76)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -586,7 +586,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(368, 68)</value>
+      <value>(360, 68)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -598,7 +598,7 @@
     </param>
     <param>
       <key>value</key>
-      <value>"addr=192.168.10.4"</value>
+      <value>"addr0=10.0.0.18"</value>
     </param>
   </block>
   <block>
@@ -621,7 +621,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(200, 536)</value>
+      <value>(216, 488)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -652,7 +652,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(664, 552)</value>
+      <value>(752, 592)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -661,6 +661,37 @@
     <param>
       <key>id</key>
       <value>blocks_message_debug_0_0</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_message_debug</key>
+    <param>
+      <key>alias</key>
+      <value></value>
+    </param>
+    <param>
+      <key>comment</key>
+      <value></value>
+    </param>
+    <param>
+      <key>affinity</key>
+      <value></value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(424, 192)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>id</key>
+      <value>blocks_message_debug_0_1</value>
     </param>
   </block>
   <block>
@@ -915,7 +946,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(592, 300)</value>
+      <value>(680, 340)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -982,7 +1013,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(520, 228)</value>
+      <value>(608, 268)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1116,7 +1147,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(896, 404)</value>
+      <value>(1016, 452)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1250,7 +1281,7 @@
     </param>
     <param>
       <key>develop_mode</key>
-      <value>1</value>
+      <value>0</value>
     </param>
     <param>
       <key>_enabled</key>
@@ -1258,7 +1289,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(424, 396)</value>
+      <value>(512, 440)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1341,7 +1372,7 @@
     </param>
     <param>
       <key>_coordinate</key>
-      <value>(624, 400)</value>
+      <value>(712, 440)</value>
     </param>
     <param>
       <key>_rotation</key>
@@ -1404,7 +1435,7 @@
     </param>
     <param>
       <key>_enabled</key>
-      <value>True</value>
+      <value>1</value>
     </param>
     <param>
       <key>_coordinate</key>
@@ -1550,5 +1581,11 @@
     <sink_block_id>inets_counter_0_0_2_0</sink_block_id>
     <source_key>rx_power_out</source_key>
     <sink_key>message_in</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>inets_receiving_0</source_block_id>
+    <sink_block_id>blocks_message_debug_0_1</sink_block_id>
+    <source_key>snr_out</source_key>
+    <sink_key>print</sink_key>
   </connection>
 </flow_graph>

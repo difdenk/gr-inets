@@ -4,7 +4,7 @@
 # GNU Radio Python Flow Graph
 # Title: theoretical_aloha_rx
 # Author: PWA
-# Generated: Fri Sep  8 13:15:25 2017
+# Generated: Fri Sep 29 15:24:22 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -61,13 +61,13 @@ class theoretical_aloha_rx(gr.top_block, Qt.QWidget):
         ##################################################
         self.sps = sps = 4
         self.range_mu = range_mu = 0.6
-        self.usrp_device_address = usrp_device_address = "addr=192.168.10.4"
+        self.usrp_device_address = usrp_device_address = "addr0=10.0.0.18"
         self.tx_center_frequency = tx_center_frequency = 3.76e9
         self.timeout_duration_ms = timeout_duration_ms = 1000
         self.system_time_granularity_us = system_time_granularity_us = 10
         self.source_address = source_address = 3
         self.samp_rate = samp_rate = 400000
-        self.rx_gain = rx_gain = 10
+        self.rx_gain = rx_gain = 20
         self.rx_center_frequency = rx_center_frequency = 3.76e9
 
         self.rrc = rrc = firdes.root_raised_cosine(1.0, sps, 1, 0.5, 11*sps)
@@ -89,7 +89,7 @@ class theoretical_aloha_rx(gr.top_block, Qt.QWidget):
         self.top_grid_layout.addWidget(self._range_mu_win, 2,0,1,1)
         self.inets_receiving_0 = inets.receiving(0, 21, gnuradio.digital.constellation_qpsk().base(), rrc, mu, diff_preamble_128, rx_gain, samp_rate, sps, 30, usrp_device_address, rx_center_frequency)
         self.inets_frame_check_0 = inets.frame_check(0, 9)
-        self.inets_frame_analysis_0 = inets.frame_analysis(1, 7, 1, 1, 1, 1, 1, 2, 2, 2, 1, source_address)
+        self.inets_frame_analysis_0 = inets.frame_analysis(0, 7, 1, 1, 1, 1, 1, 2, 2, 2, 1, source_address)
         self.inets_counter_0_1 = inets.counter(1, 3, 1, "bad_fr", 0, "/home/inets/source/gr-inets/results/", 1)
         self.inets_counter_0_0_2_0 = inets.counter(0, 1, 1, "RSS", 1, "/home/inets/source/gr-inets/results/", 1)
         self.inets_counter_0_0_2 = inets.counter(0, 1, 1, "rx_phy_pkt", 0, "/home/inets/source/gr-inets/results/", 1)
