@@ -109,7 +109,7 @@ namespace gr {
 
     void direction_mapper_impl::track_movement(pmt::pmt_t track) {
       if (pmt::is_dict(track)) {
-        std::cout << "Tracking movement..." << '\n';
+        std::cout << "Node is getting away !!" << '\n';
         _phase_values = pmt::make_dict();
         int node_number = pmt::to_long(pmt::car(track));
         double difference = pmt::to_double(pmt::cdr(track));
@@ -207,6 +207,15 @@ namespace gr {
         std::cout << "new_angle:" << new_angle <<'\n';
         int index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), node_number));
         _angles[index] = new_angle;
+        pmt::pmt_t phase_value1 = pmt::from_double(new_angle*_PI/180);
+        pmt::pmt_t phase_value2 = pmt::from_double(new_angle*_PI/180);
+        pmt::pmt_t phase_value3 = pmt::from_double(new_angle*_PI/180);
+        pmt::pmt_t phase_value4 = pmt::from_double(new_angle*_PI/180);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
+        _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
+        message_port_pub(pmt::mp("phase_out"), _phase_values);
       }
       else {
         pmt::pmt_t phase_value1 = pmt::from_double(_phase_1);

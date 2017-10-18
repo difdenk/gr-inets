@@ -104,7 +104,7 @@ namespace gr {
     double direction_finder_impl::radio::get_moving_average(std::vector<double>::iterator it, int update){
       //std::cout << "The value of the last snr according to the iterator: " << *it << '\n';
       //std::cout << "The value of the beginning snr according to the iterator: " << *(it - update/2) << '\n';
-      std::vector<double> avrgVec(it - update / 4, it);
+      std::vector<double> avrgVec(it - update, it);
       double sum = 0;
       for (size_t i = 0; i < avrgVec.size(); i++) {
         sum = sum + avrgVec[i];
@@ -166,11 +166,11 @@ namespace gr {
       _snr_values.push_back(snr);
       _angle_values.push_back(angle);
       if (_sweep_done && _ack_received ) {
-        std::cout << "INCOMING SNR" << snr << '\n';
-        std::cout << "INCOMING ANGLE" << angle << '\n';
-        double snr_difference = snr - _average_snr_each[0];
+        std::cout << "INCOMING SNR: " << snr << '\n';
+        std::cout << "INCOMING ANGLE: " << angle << '\n';
+        double snr_difference =_average_snr_each[0] - snr;
         std::cout << " BEACON SNR DIFFERENCE: "<< snr_difference << '\n';
-        if (snr_difference > - _difference + 1.5) {
+        if (snr_difference > _average_snr_each[0]) {
           _difference = 0;
           std::cout << "Node is assumed to be moving !" << '\n';
           std::cout << "Tracking... " << '\n';
@@ -241,23 +241,23 @@ namespace gr {
         }
         if ((_first_time != false || (_first_time == false && timer == 7)) && !_search_mode) {
           _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval);
+          //double old_avrg = _table_ack[i].get_moving_average((_table_ack[i].get_last_snr()) - 10, _update_interval / 2);
           std::cout << "Default Average: " << _average_snr_each[i] << '\n';
         }
         std::vector<double>::iterator ptr = _table[i].find_max_snr();
-        _difference = _average_snr_each[i] - _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval);
+        _difference = _average_snr_each[i] - _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval/2);
         //int v = rand()%100;
         /*if (v < 50) {
           std::cout << "MAX SNR: " << *ptr <<'\n';
         }*/
         std::cout << "Difference in SNR: " << _difference << '\n';
-        if (_difference > 3) {
+        if (_difference > 2.5 || _difference < -2.5) {
           _search_mode = true;
           _ack_received = true;
-          std::cout << "SNR is dropping !!" << '\n';
           std::cout << "The node other is possibly moving !!" << '\n';
           pmt::pmt_t change_direction = pmt::cons(pmt::from_long(_table_ack[i].get_node_number()), pmt::from_double(_difference));
           message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
-          boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+          boost::this_thread::sleep(boost::posix_time::milliseconds(70));
           message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
         }
       }
