@@ -65,9 +65,11 @@ namespace gr {
       message_port_register_in(pmt::mp("beacon_reply_in"));
       message_port_register_in(pmt::mp("ack_in"));
       message_port_register_in(pmt::mp("sweep_done_in"));
+      message_port_register_in(pmt::mp("timeout_in"));
       set_msg_handler(pmt::mp("beacon_reply_in"), boost::bind(&direction_finder_impl::generate_node_table, this, _1));
       set_msg_handler(pmt::mp("ack_in"), boost::bind(&direction_finder_impl::generate_ack_table, this, _1));
       set_msg_handler(pmt::mp("sweep_done_in"), boost::bind(&direction_finder_impl::sweep_done, this, _1));
+      set_msg_handler(pmt::mp("timeout_in"), boost::bind(&direction_finder_impl::timeout, this, _1));
     }
 
     /*
@@ -183,8 +185,12 @@ namespace gr {
       }
     }
 
+    void direction_finder_impl::timeout(pmt::pmt_t expired) {
+      start_tracking(_lost);
+      std::cout << "Connection lost with node number " << _lost << '\n';
+    }
+
     void direction_finder_impl::generate_ack_table(pmt::pmt_t ack_in) {
-      //_average_snr++;
       //std::cout << _average_snr << " times this function is called." << '\n';
       int update_interval = _update_interval;
       int timeout_value = _timeout_value;
@@ -251,17 +257,22 @@ namespace gr {
           std::cout << "MAX SNR: " << *ptr <<'\n';
         }*/
         std::cout << "Difference in SNR: " << _difference << '\n';
-        if (_difference > 2.5 || _difference < -2.5) {
+        if (_difference > 2.5) {
           _search_mode = true;
           _ack_received = true;
-          std::cout << "The node other is possibly moving !!" << '\n';
-          pmt::pmt_t change_direction = pmt::cons(pmt::from_long(_table_ack[i].get_node_number()), pmt::from_double(_difference));
-          message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
-          boost::this_thread::sleep(boost::posix_time::milliseconds(70));
-          message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
+          _lost = _table_ack[i].get_node_number();
+          start_tracking(_lost);
         }
       }
       _first_time = false;
+    }
+
+    void direction_finder_impl::start_tracking(int lost) {
+      std::cout << "The node other is possibly moving !!" << '\n';
+      pmt::pmt_t change_direction = pmt::cons(pmt::from_long(lost), pmt::from_double(_difference));
+      message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
+      boost::this_thread::sleep(boost::posix_time::milliseconds(80));
+      message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
     }
 
     void direction_finder_impl::calculate(){

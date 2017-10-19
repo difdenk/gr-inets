@@ -35,6 +35,7 @@ namespace gr {
        int _destination_address;
        int _virgin;
        int _counter;
+       int _lost;
        double _update_interval;
        double _timeout_value;
        double _average_snr;
@@ -84,6 +85,8 @@ namespace gr {
       void generate_ack_table(pmt::pmt_t ack_in);
       void calculate();
       void sort();
+      void start_tracking(int lost);
+      void timeout(pmt::pmt_t expired);
 
     };
 

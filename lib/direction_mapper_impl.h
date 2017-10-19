@@ -38,6 +38,8 @@ namespace gr {
       bool _sweep_done;
       bool _side;
       double _corresponding_angle;
+      double _tracking_angle1;
+      double _tracking_angle2;
       double _difference;
       double _phase_1;
       double _phase_2;

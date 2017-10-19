@@ -52,7 +52,8 @@ namespace gr {
               _phase_1(phase_1*_PI/180),
               _phase_2(phase_2*_PI/180),
               _phase_3(phase_3*_PI/180),
-              _phase_4(phase_4*_PI/180)
+              _phase_4(phase_4*_PI/180),
+              _side(true)
     {
       if(develop_mode)
       std::cout << "develop_mode of Direction mapper is activated." << '\n';
@@ -79,7 +80,7 @@ namespace gr {
 
     void direction_mapper_impl::check_destination(pmt::pmt_t frame_in) {
       _phase_values = pmt::make_dict();
-      if (_indicator == 1) {
+      if (_indicator == 1 || _count != 0) {
         pmt::pmt_t frame_type;
         pmt::pmt_t not_found = pmt::from_long(7);
         if (pmt::is_dict(frame_in) && ((pmt::to_long(pmt::dict_ref(frame_in, pmt::string_to_symbol("frame_type"), not_found)) == 1) || (pmt::to_long(pmt::dict_ref(frame_in, pmt::string_to_symbol("frame_type"), not_found)) == 2))) {
@@ -99,11 +100,45 @@ namespace gr {
             _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
             _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
             _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-            //std::cout << "Corresponding_angle: " << corresponding_angle <<'\n';
+            std::cout << "Corresponding_angle: " << corresponding_angle <<'\n';
             message_port_pub(pmt::mp("phase_out"), _phase_values);
             //pmt::print(_phase_values);
           }
         }
+        /*if (pmt::is_dict(frame_in) && ((pmt::to_long(pmt::dict_ref(frame_in, pmt::string_to_symbol("frame_type"), not_found)) == 3)) && _count != 0) {
+          if (_develop_mode) {
+            //std::cout << "frame_in is a dict" << '\n';
+          };
+          if (_nodes.size() != 0) {
+            if (_side) {
+              pmt::pmt_t phase_value1 = pmt::from_double(_tracking_angle1*_PI/180);
+              pmt::pmt_t phase_value2 = pmt::from_double(_tracking_angle1*_PI/180);
+              pmt::pmt_t phase_value3 = pmt::from_double(_tracking_angle1*_PI/180);
+              pmt::pmt_t phase_value4 = pmt::from_double(_tracking_angle1*_PI/180);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
+              std::cout << "_tracking_angle1: " << _tracking_angle1 <<'\n';
+              message_port_pub(pmt::mp("phase_out"), _phase_values);
+              //pmt::print(_phase_values);
+              _side = false;
+            } else {
+              pmt::pmt_t phase_value1 = pmt::from_double(_tracking_angle2*_PI/180);
+              pmt::pmt_t phase_value2 = pmt::from_double(_tracking_angle2*_PI/180);
+              pmt::pmt_t phase_value3 = pmt::from_double(_tracking_angle2*_PI/180);
+              pmt::pmt_t phase_value4 = pmt::from_double(_tracking_angle2*_PI/180);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
+              _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
+              std::cout << "_tracking_angle2: " << _tracking_angle2 <<'\n';
+              message_port_pub(pmt::mp("phase_out"), _phase_values);
+              //pmt::print(_phase_values);
+              _side = true;
+            }
+          }
+        }*/
       }
     }
 
@@ -114,7 +149,9 @@ namespace gr {
         int node_number = pmt::to_long(pmt::car(track));
         double difference = pmt::to_double(pmt::cdr(track));
         int index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), node_number));
+        std::cout << "index: " << index << '\n';
         double corresponding_angle = _angles[index];
+        std::cout << "corre: " << corresponding_angle <<'\n';
         if (difference < 5) {
           pmt::pmt_t phase_value1 = pmt::from_double((corresponding_angle + 3)*_PI/180);
           pmt::pmt_t phase_value2 = pmt::from_double((corresponding_angle + 3)*_PI/180);
@@ -137,10 +174,10 @@ namespace gr {
           _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
           message_port_pub(pmt::mp("phase_out"), _phase_values);
         } else {
-          pmt::pmt_t phase_value1 = pmt::from_double((corresponding_angle + 9)*_PI/180);
-          pmt::pmt_t phase_value2 = pmt::from_double((corresponding_angle + 9)*_PI/180);
-          pmt::pmt_t phase_value3 = pmt::from_double((corresponding_angle + 9)*_PI/180);
-          pmt::pmt_t phase_value4 = pmt::from_double((corresponding_angle + 9)*_PI/180);
+          pmt::pmt_t phase_value1 = pmt::from_double((corresponding_angle + 6)*_PI/180);
+          pmt::pmt_t phase_value2 = pmt::from_double((corresponding_angle + 6)*_PI/180);
+          pmt::pmt_t phase_value3 = pmt::from_double((corresponding_angle + 6)*_PI/180);
+          pmt::pmt_t phase_value4 = pmt::from_double((corresponding_angle + 6)*_PI/180);
           _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
           _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
           _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
@@ -148,10 +185,10 @@ namespace gr {
           message_port_pub(pmt::mp("phase_out"), _phase_values);
           boost::this_thread::sleep(boost::posix_time::milliseconds(100));
           _phase_values = pmt::make_dict();
-          phase_value1 = pmt::from_double((corresponding_angle - 9)*_PI/180);
-          phase_value2 = pmt::from_double((corresponding_angle - 9)*_PI/180);
-          phase_value3 = pmt::from_double((corresponding_angle - 9)*_PI/180);
-          phase_value4 = pmt::from_double((corresponding_angle - 9)*_PI/180);
+          phase_value1 = pmt::from_double((corresponding_angle - 6)*_PI/180);
+          phase_value2 = pmt::from_double((corresponding_angle - 6)*_PI/180);
+          phase_value3 = pmt::from_double((corresponding_angle - 6)*_PI/180);
+          phase_value4 = pmt::from_double((corresponding_angle - 6)*_PI/180);
           _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
           _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
           _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
@@ -207,6 +244,7 @@ namespace gr {
         std::cout << "new_angle:" << new_angle <<'\n';
         int index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), node_number));
         _angles[index] = new_angle;
+        std::cout << "_angles[index]:" << _angles[index] <<'\n';
         pmt::pmt_t phase_value1 = pmt::from_double(new_angle*_PI/180);
         pmt::pmt_t phase_value2 = pmt::from_double(new_angle*_PI/180);
         pmt::pmt_t phase_value3 = pmt::from_double(new_angle*_PI/180);
