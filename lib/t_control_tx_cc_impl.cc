@@ -312,9 +312,9 @@ namespace gr {
       std::complex<double> temp1(magn, arg);
       std::complex<double> weight;
       double sweep_speed = _sweep_mode;
-      double calibration1 = 0.257; // 81 degrees phase offset
-      double calibration2 = 0.0523; // 20 degrees offset
-      double calibration3 = 0.107; // 42 degrees phase offset
+      double calibration1 = 0.28; // 81 degrees phase offset
+      double calibration2 = -0.025; // 20 degrees offset
+      double calibration3 = 0.075; // 42 degrees phase offset
       pmt::pmt_t direction;
       if (_record_on == 2 && !_initial_message && _sweep_mode) {
         double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;

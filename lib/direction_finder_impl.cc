@@ -170,7 +170,7 @@ namespace gr {
         std::cout << "INCOMING ANGLE: " << angle << '\n';
         double snr_difference =_average_snr_each[0] - snr;
         std::cout << " BEACON SNR DIFFERENCE: "<< snr_difference << '\n';
-        if (snr_difference > _average_snr_each[0]) {
+        if (snr_difference < 1) {
           _difference = 0;
           std::cout << "Node is assumed to be moving !" << '\n';
           std::cout << "Tracking... " << '\n';
@@ -251,7 +251,7 @@ namespace gr {
           std::cout << "MAX SNR: " << *ptr <<'\n';
         }*/
         std::cout << "Difference in SNR: " << _difference << '\n';
-        if (_difference > 2.5 || _difference < -2.5) {
+        if (_difference > 3) {
           _search_mode = true;
           _ack_received = true;
           std::cout << "The node other is possibly moving !!" << '\n';

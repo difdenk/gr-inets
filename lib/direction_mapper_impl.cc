@@ -116,10 +116,10 @@ namespace gr {
         int index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), node_number));
         double corresponding_angle = _angles[index];
         if (difference < 5) {
-          pmt::pmt_t phase_value1 = pmt::from_double((corresponding_angle + 3)*_PI/180);
-          pmt::pmt_t phase_value2 = pmt::from_double((corresponding_angle + 3)*_PI/180);
-          pmt::pmt_t phase_value3 = pmt::from_double((corresponding_angle + 3)*_PI/180);
-          pmt::pmt_t phase_value4 = pmt::from_double((corresponding_angle + 3)*_PI/180);
+          pmt::pmt_t phase_value1 = pmt::from_double((corresponding_angle + 5)*_PI/180);
+          pmt::pmt_t phase_value2 = pmt::from_double((corresponding_angle + 5)*_PI/180);
+          pmt::pmt_t phase_value3 = pmt::from_double((corresponding_angle + 5)*_PI/180);
+          pmt::pmt_t phase_value4 = pmt::from_double((corresponding_angle + 5)*_PI/180);
           _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
           _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
           _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
@@ -127,10 +127,10 @@ namespace gr {
           message_port_pub(pmt::mp("phase_out"), _phase_values);
           boost::this_thread::sleep(boost::posix_time::milliseconds(100));
           _phase_values = pmt::make_dict();
-          phase_value1 = pmt::from_double((corresponding_angle - 3)*_PI/180);
-          phase_value2 = pmt::from_double((corresponding_angle - 3)*_PI/180);
-          phase_value3 = pmt::from_double((corresponding_angle - 3)*_PI/180);
-          phase_value4 = pmt::from_double((corresponding_angle - 3)*_PI/180);
+          phase_value1 = pmt::from_double((corresponding_angle - 5)*_PI/180);
+          phase_value2 = pmt::from_double((corresponding_angle - 5)*_PI/180);
+          phase_value3 = pmt::from_double((corresponding_angle - 5)*_PI/180);
+          phase_value4 = pmt::from_double((corresponding_angle - 5)*_PI/180);
           _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
           _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
           _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
