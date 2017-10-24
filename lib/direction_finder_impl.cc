@@ -53,10 +53,12 @@ namespace gr {
               _first_time(true),
               _virgin(0),
               _counter(0),
-              _average_snr(0),
+              _timeout(false),
+              _snr(0),
               _ack_received(false),
               _search_mode(false),
-              _difference(0)
+              _difference(0),
+              _beacon_reply_received(false)
     {
       if(develop_mode)
         std::cout << "develop_mode of Direction mapper is activated." << '\n';
@@ -167,12 +169,14 @@ namespace gr {
       _node_addresses.push_back(received_frame_address);
       _snr_values.push_back(snr);
       _angle_values.push_back(angle);
-      if (_sweep_done && _ack_received ) {
+      /*if (_sweep_done && _ack_received ) {
+        _beacon_reply_received = true;
+        std::cout << "BEACON REPLY HAS BEEN RECEIVED FOR TRACKING !" << '\n';
         std::cout << "INCOMING SNR: " << snr << '\n';
         std::cout << "INCOMING ANGLE: " << angle << '\n';
-        double snr_difference =_average_snr_each[0] - snr;
+        double snr_difference =snr - _average_snr_each[0];
         std::cout << " BEACON SNR DIFFERENCE: "<< snr_difference << '\n';
-        if (snr_difference > _average_snr_each[0]) {
+        if (snr_difference > -1) {
           _difference = 0;
           std::cout << "Node is assumed to be moving !" << '\n';
           std::cout << "Tracking... " << '\n';
@@ -182,12 +186,15 @@ namespace gr {
           std::cout << "Antennas are Set !!" << '\n';
           _search_mode = false;
         }
-      }
+      }*/
     }
 
     void direction_finder_impl::timeout(pmt::pmt_t expired) {
-      start_tracking(_lost);
-      std::cout << "Connection lost with node number " << _lost << '\n';
+      start_tracking(3, 30);
+      std::cout << "Timeout !!! No ACK received for 3 seconds !!" << '\n';
+      std::cout << "Connection lost with node number " << 3 << '\n';
+      _search_mode = true;
+      _timeout = true;
     }
 
     void direction_finder_impl::generate_ack_table(pmt::pmt_t ack_in) {
@@ -197,13 +204,13 @@ namespace gr {
       pmt::pmt_t not_found = pmt::from_long(7);
       int received_frame_address = pmt::to_long(pmt::dict_ref(ack_in, pmt::string_to_symbol("source_address"), not_found));
       _nodes.insert(received_frame_address);
-      double snr = pmt::to_double(pmt::dict_ref(ack_in, pmt::string_to_symbol("reserved_field_I"), not_found));
+      _snr = pmt::to_double(pmt::dict_ref(ack_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       if (_develop_mode) {
         std::cout << "Incoming node address: " << received_frame_address <<'\n';
-        std::cout << "SNR: " << snr <<'\n';
+        std::cout << "SNR: " << _snr <<'\n';
       }
       _node_addresses_ack.push_back(received_frame_address);
-      _snr_values_ack.push_back(snr);
+      _snr_values_ack.push_back(_snr);
       if (_snr_values_ack.size() > update_interval) {
         sort();
         _snr_values_ack.erase(_snr_values_ack.begin());
@@ -251,18 +258,42 @@ namespace gr {
           std::cout << "Default Average: " << _average_snr_each[i] << '\n';
         }
         std::vector<double>::iterator ptr = _table[i].find_max_snr();
-        _difference = _average_snr_each[i] - _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval/2);
+        if (_search_mode) {
+          //std::cout << "search_mode is on" << '\n';
+          _difference = _average_snr_each[i] - _snr;
+        }
+        else {
+          //std::cout << "search_mode is off" << '\n';
+          _difference = _average_snr_each[i] - _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval/2);
+        }
         //int v = rand()%100;
         /*if (v < 50) {
           std::cout << "MAX SNR: " << *ptr <<'\n';
         }*/
         std::cout << "Difference in SNR: " << _difference << '\n';
-        if (_difference > 2.5) {
+        if (_difference > 3 && !_search_mode) {
           _search_mode = true;
           _ack_received = true;
           _lost = _table_ack[i].get_node_number();
           start_tracking(_lost);
         }
+        if (_difference < -2 && !_search_mode) {
+          _average_snr_each[i] = _snr;
+        }
+        if (_timeout || (_search_mode && (_difference < 2))) {
+          //_difference = 0;
+          std::cout << "Tracking... " << '\n';
+          sweep_done(pmt::pmt_from_complex(_table_ack[i].get_node_number(), 1));
+          _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), 1);
+          std::cout << "Antennas are Set !!" << '\n';
+          _search_mode = false;
+          _timeout = false;
+
+        }
+        /*else if(_search_mode && !_beacon_reply_received) {
+          _lost = _table_ack[i].get_node_number();
+          start_tracking(_lost);
+        }*/
       }
       _first_time = false;
     }
@@ -271,7 +302,11 @@ namespace gr {
       std::cout << "The node other is possibly moving !!" << '\n';
       pmt::pmt_t change_direction = pmt::cons(pmt::from_long(lost), pmt::from_double(_difference));
       message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
-      boost::this_thread::sleep(boost::posix_time::milliseconds(80));
+    }
+
+    void direction_finder_impl::start_tracking(int lost, double difference) {
+      std::cout << "The node other is possibly moving !!" << '\n';
+      pmt::pmt_t change_direction = pmt::cons(pmt::from_long(lost), pmt::from_double(difference));
       message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
     }
 
@@ -343,7 +378,7 @@ namespace gr {
         double angle = std::imag(ID);
         _best_direction = pmt::pmt_from_complex(node, angle);
         message_port_pub(pmt::mp("best_direction_out"), _best_direction);
-        std::cout << "New best Direction for Destination address " << node << " is: " << angle << '\n';
+        //std::cout << "New best Direction for Destination address " << node << " is: " << angle << '\n';
       }
       else if(_virgin != 1) {
         calculate();

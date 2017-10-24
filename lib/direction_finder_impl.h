@@ -38,12 +38,14 @@ namespace gr {
        int _lost;
        double _update_interval;
        double _timeout_value;
-       double _average_snr;
+       bool _timeout;
        double _difference;
+       double _snr;
        bool _sweep_done;
        bool _ack_received;
        bool _first_time;
        bool _search_mode;
+       bool _beacon_reply_received;
        class radio {
          private:
            int node_number;
@@ -86,6 +88,7 @@ namespace gr {
       void calculate();
       void sort();
       void start_tracking(int lost);
+      void start_tracking(int lost, double difference);
       void timeout(pmt::pmt_t expired);
 
     };

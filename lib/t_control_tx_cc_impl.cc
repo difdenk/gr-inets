@@ -276,9 +276,9 @@ namespace gr {
         if (_antenna_number == 1) {
           if (pmt::dict_has_key(phase_in, pmt::string_to_symbol("phase_key1"))) {
             _phase = pmt::to_double(pmt::dict_ref(phase_in, pmt::string_to_symbol("phase_key1"), not_found));
-            std::cout << "*********************" << '\n';
+            /*std::cout << "*********************" << '\n';
             std::cout << "****CURRENT PHASE**** " << _phase*180/_PI << '\n';
-            std::cout << "*********************" << '\n';
+            std::cout << "*********************" << '\n';*/
             if (_develop_mode) {
               std::cout << "dict has the key" << '\n';
             }
@@ -312,9 +312,9 @@ namespace gr {
       std::complex<double> temp1(magn, arg);
       std::complex<double> weight;
       double sweep_speed = _sweep_mode;
-      double calibration1 = 0.27; // 81 degrees phase offset 0.257. 2nd calibration :90 degree
-      double calibration2 = 0.003; // 20 degrees offset 0.0523. 2nd calibration : 8 degree
-      double calibration3 = 0.028; // 42 degrees phase offset 0.107. 2nd calibration : -87
+      double calibration1 = 0.257; // 81 degrees phase offset // second calibration : 0.28, -0.025, 0.075 third: 0.257, -0.0175, 0.075
+      double calibration2 = -0.0175; // 20 degrees offset //
+      double calibration3 = 0.075; // 42 degrees phase offset
       pmt::pmt_t direction;
       if (_record_on == 2 && !_initial_message && _sweep_mode) {
         double sweep = (((clock() - _start)/CLOCKS_PER_SEC)*_PI/180)*sweep_speed;
@@ -324,13 +324,13 @@ namespace gr {
             weight = std::exp(0.085 * (0) * sin(sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
           }
           else if (_antenna_number == 2) {
-            weight = std::exp(0.085 * (1) * sin(sliding_phase + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            weight = std::exp(0.085 * (1) * sin(sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
           }
           else if (_antenna_number == 3) {
-            weight = std::exp(0.085 * (2) * sin(sliding_phase + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            weight = std::exp(0.085 * (2) * sin(sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
           }
           else
-            weight = std::exp(0.085 * (3) * sin(sliding_phase + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+            weight = std::exp(0.085 * (3) * sin(sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
           direction = pmt::from_double(sliding_phase*180/_PI);
           message_port_pub(pmt::mp("direction_out"), direction);
           if (v < 1)
@@ -341,13 +341,13 @@ namespace gr {
               weight = std::exp(0.085 * (3) * sin(-sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else if (_antenna_number == 2) {
-              weight = std::exp(0.085 * (2) * sin(-sliding_phase + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (2) * sin(-sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else if (_antenna_number == 3) {
-              weight = std::exp(0.085 * (1) * sin(-sliding_phase + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (1) * sin(-sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else
-              weight = std::exp(0.085 * (0) * sin(-sliding_phase + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (0) * sin(-sliding_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             direction = pmt::from_double(sliding_phase*180/_PI);
             message_port_pub(pmt::mp("direction_out"), direction);
             if (v < 1)
@@ -375,13 +375,13 @@ namespace gr {
                 weight = std::exp(0.085 * (0) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 2) {
-                weight = std::exp(0.085 * (1) * sin(sweep + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 3) {
-                weight = std::exp(0.085 * (2) * sin(sweep + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (2) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else
-                weight = std::exp(0.085 * (3) * sin(sweep + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (3) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               direction = pmt::from_double(sweep*180/_PI);
               message_port_pub(pmt::mp("direction_out"), direction);
               if (v < 1)
@@ -393,13 +393,13 @@ namespace gr {
                 weight = std::exp(0.085 * (0) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 2) {
-                weight = std::exp(0.085 * (1) * sin(_phase + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 3) {
-                weight = std::exp(0.085 * (2) * sin(_phase + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (2) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else
-                weight = std::exp(0.085 * (3) * sin(_phase + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (3) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               direction = pmt::from_double(_phase*180/_PI);
               message_port_pub(pmt::mp("direction_out"), direction);
               if (_first == true && _antenna_number == 1) {
@@ -418,13 +418,13 @@ namespace gr {
               weight = std::exp(0.085 * (0) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else if (_antenna_number == 2) {
-              weight = std::exp(0.085 * (1) * sin(_phase + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (1) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else if (_antenna_number == 3) {
-              weight = std::exp(0.085 * (2) * sin(_phase + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (2) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else
-              weight = std::exp(0.085 * (3) * sin(_phase + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (3) * sin(_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             direction = pmt::from_double(_phase*180/_PI);
             message_port_pub(pmt::mp("direction_out"), direction);
             if (_first == true && _antenna_number == 1) {
@@ -443,13 +443,13 @@ namespace gr {
                 weight = std::exp(0.085 * (3) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 2) {
-                weight = std::exp(0.085 * (2) * sin(sweep + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (2) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 3) {
-                weight = std::exp(0.085 * (1) * sin(sweep + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (1) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else
-                weight = std::exp(0.085 * (0) * sin(sweep + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (0) * sin(sweep) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               pmt::pmt_t direction = pmt::from_double(-sweep*180/_PI);
               message_port_pub(pmt::mp("direction_out"), direction);
               if (v < 1)
@@ -461,13 +461,13 @@ namespace gr {
                 weight = std::exp(0.085 * (3) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 2) {
-                weight = std::exp(0.085 * (2) * sin(-_phase + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (2) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else if (_antenna_number == 3) {
-                weight = std::exp(0.085 * (1) * sin(-_phase + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (1) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               }
               else
-                weight = std::exp(0.085 * (0) * sin(-_phase + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+                weight = std::exp(0.085 * (0) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
               pmt::pmt_t direction = pmt::from_double(-_phase*180/_PI);
               message_port_pub(pmt::mp("direction_out"), direction);
               if (_first == true && _antenna_number == 1) {
@@ -484,13 +484,13 @@ namespace gr {
               weight = std::exp(0.085 * (3) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else if (_antenna_number == 2) {
-              weight = std::exp(0.085 * (2) * sin(-_phase + calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (2) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration1) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else if (_antenna_number == 3) {
-              weight = std::exp(0.085 * (1) * sin(-_phase + calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (1) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration2) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             }
             else
-              weight = std::exp(0.085 * (0) * sin(-_phase + calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
+              weight = std::exp(0.085 * (0) * sin(-_phase) * (2*_PI*_frequency/Speed_of_Light) * Imag) * std::exp(0.085 * sin(calibration3) * (2*_PI*_frequency/Speed_of_Light) * Imag);
             direction = pmt::from_double(-_phase*180/_PI);
             message_port_pub(pmt::mp("direction_out"), direction);
             if (_first == true && _antenna_number == 1) {
