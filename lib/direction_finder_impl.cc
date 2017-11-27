@@ -57,8 +57,9 @@ namespace gr {
               _snr(0),
               _ack_received(false),
               _search_mode(false),
-              _difference(0),
-              _beacon_reply_received(false)
+              //_difference(0),
+              _indicator(false)
+
     {
       if(develop_mode)
         std::cout << "develop_mode of Direction mapper is activated." << '\n';
@@ -137,8 +138,8 @@ namespace gr {
       if (this-> node_number == 0 || this-> node_number > 10 || this-> node_number < 0 ) {
         this->node_number = number;
       }
-      /*else
-        std::cout << "Node number was already set." << '\n';*/
+      //else
+        //std::cout << "Node number was already set." << '\n';
     }
 
     bool direction_finder_impl::radio::check_node_number(int address) {
@@ -152,6 +153,30 @@ namespace gr {
     int direction_finder_impl::radio::get_node_number() {
       return this->node_number;
     }
+
+    int direction_finder_impl::radio::ack_size() {
+      return this->snr_radio.size();
+    }
+
+    direction_finder_impl::timer::timer(){
+      this->start = 0;
+    };
+
+    direction_finder_impl::timer::~timer(){};
+
+    int direction_finder_impl::timer::start_timer(double duration){
+      if (this->start == 0) {
+        this->start = clock();
+      }
+      if (duration > ((clock() - start) / (double) CLOCKS_PER_SEC)) {
+        return this->node;
+      }
+      else {
+        return 0;
+      }
+
+    }
+
 
     void direction_finder_impl::generate_node_table(pmt::pmt_t beacon_reply_in) {
       int update_interval = _update_interval;
@@ -190,9 +215,22 @@ namespace gr {
     }
 
     void direction_finder_impl::timeout(pmt::pmt_t expired) {
-      start_tracking(3, 30);
+      int guilty;
+      if (_nodes.size() > 1) {
+        std::vector<int>::iterator it = _node_addresses_ack.end() - 1;
+        int last_ack_received_neighbour = *it;
+        std::cout << "the value of *it: " << *it << '\n';
+        std::set<int> nodes = _nodes; //temp storage
+        nodes.erase(last_ack_received_neighbour);
+        start_tracking(*nodes.begin(), 12);
+        int guilty = *nodes.begin();
+      }
+      else {
+        start_tracking(*_nodes.begin(), 12);
+        int guilty = *_nodes.begin();
+      }
       std::cout << "Timeout !!! No ACK received for 3 seconds !!" << '\n';
-      std::cout << "Connection lost with node number " << 3 << '\n';
+      std::cout << "Connection lost with node number " << guilty << '\n';
       _search_mode = true;
       _timeout = true;
     }
@@ -200,9 +238,15 @@ namespace gr {
     void direction_finder_impl::generate_ack_table(pmt::pmt_t ack_in) {
       //std::cout << _average_snr << " times this function is called." << '\n';
       int update_interval = _update_interval;
-      int timeout_value = _timeout_value;
+      //int timeout_value = _timeout_value;
       pmt::pmt_t not_found = pmt::from_long(7);
       int received_frame_address = pmt::to_long(pmt::dict_ref(ack_in, pmt::string_to_symbol("source_address"), not_found));
+      if (_timer.size() == 0) {
+        for (size_t i = 0; i < _nodes.size(); i++) {
+          timer newTimer;
+          _timer.push_back(newTimer);
+        }
+      }
       _nodes.insert(received_frame_address);
       _snr = pmt::to_double(pmt::dict_ref(ack_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       if (_develop_mode) {
@@ -211,7 +255,7 @@ namespace gr {
       }
       _node_addresses_ack.push_back(received_frame_address);
       _snr_values_ack.push_back(_snr);
-      if (_snr_values_ack.size() > update_interval) {
+      if (_snr_values_ack.size() > 2 * update_interval) {
         sort();
         _snr_values_ack.erase(_snr_values_ack.begin());
         _node_addresses_ack.erase(_node_addresses_ack.begin());
@@ -219,25 +263,33 @@ namespace gr {
     }
 
     void direction_finder_impl::sort() {
-      _table_ack.clear();
       int timer = rand()%40;
       int initial_size = _nodes.size();
       //std::cout << "initial_size: " << initial_size << '\n';
       for (size_t i = 0; i < initial_size; i++) {
-        radio newRadio;
-        _table_ack.push_back(newRadio);
-        double newAvrg;
-        _average_snr_each.push_back(newAvrg);
+        if (!_indicator) {
+          double newAvrg;
+          _average_snr_each.push_back(newAvrg);
+          double newDiff;
+          _difference.push_back(newDiff);
+          radio newRadio;
+          _table_ack.push_back(newRadio);
+        }
       }
+      _indicator = true;
+      //std::cout << "dif: " << _difference.size() << '\n';
+      //std::cout << "Table: " << _table_ack.size() << '\n';
+      //std::cout << "avg_snr: " << _average_snr_each.size() << '\n';
       std::vector<int>::iterator it;
       for (int i = 0; i < initial_size; i++) {
+        std::cout << "i: " << i <<'\n';
         std::vector<int> used_node_numbers;
         if (i != 0) {
           used_node_numbers.push_back(_table[i-1].get_node_number());
+          //std::cout << "used_node_numbers: " << used_node_numbers[i-1] <<'\n';
         }
         for (it = _node_addresses_ack.begin(); it != _node_addresses_ack.end(); it++){
           while (_counter < used_node_numbers.size()) {
-            //std::cout << "hellooo" << '\n';
             while (used_node_numbers[_counter] == *it && it != _node_addresses.end()) {
               it++;
             }
@@ -252,35 +304,39 @@ namespace gr {
             //std::cout << "snr: "  << _snr_values_ack[index] << '\n';
           }
         }
-        if ((_first_time != false || (_first_time == false && timer == 7)) && !_search_mode) {
-          _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval);
+        //std::cout << "debug: " << _table_ack[i].get_node_number() << '\n';
+        if (_first_time != false && !_search_mode) {
+          _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _table_ack[i].ack_size());
           //double old_avrg = _table_ack[i].get_moving_average((_table_ack[i].get_last_snr()) - 10, _update_interval / 2);
-          std::cout << "Default Average: " << _average_snr_each[i] << '\n';
+          std::cout << "Default Average for node number "<< _table_ack[i].get_node_number() << " : " << _average_snr_each[i] << '\n';
+        }if (_first_time == false && !_search_mode && timer == 7) {
+          _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), 20);
+          //double old_avrg = _table_ack[i].get_moving_average((_table_ack[i].get_last_snr()) - 10, _update_interval / 2);
+          std::cout << "Default Average for node number "<< _table_ack[i].get_node_number() << " : " << _average_snr_each[i] << '\n';
         }
-        std::vector<double>::iterator ptr = _table[i].find_max_snr();
+        //std::vector<double>::iterator ptr = _table[i].find_max_snr();
         if (_search_mode) {
           //std::cout << "search_mode is on" << '\n';
-          _difference = _average_snr_each[i] - _snr;
+          _difference[i] = _average_snr_each[i] - _snr;
         }
         else {
           //std::cout << "search_mode is off" << '\n';
-          _difference = _average_snr_each[i] - _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _update_interval/2);
+          _difference[i] = _average_snr_each[i] - _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), 15);
         }
         //int v = rand()%100;
         /*if (v < 50) {
           std::cout << "MAX SNR: " << *ptr <<'\n';
         }*/
-        std::cout << "Difference in SNR: " << _difference << '\n';
-        if (_difference > 3 && !_search_mode) {
+        std::cout << "Difference in SNR: " << _difference[i] << '\n';
+        if (_difference[i] > 3 && !_search_mode) {
           _search_mode = true;
           _ack_received = true;
-          _lost = _table_ack[i].get_node_number();
-          start_tracking(_lost);
+          start_tracking(_table_ack[i].get_node_number(), _difference[i]);
         }
-        if (_difference < -2 && !_search_mode) {
+        if (_difference[i] < -2 && !_search_mode) {
           _average_snr_each[i] = _snr;
         }
-        if (_timeout || (_search_mode && (_difference < 2))) {
+        if (_timeout || (_search_mode && (_difference[i] < 2))) {
           //_difference = 0;
           std::cout << "Tracking... " << '\n';
           sweep_done(pmt::pmt_from_complex(_table_ack[i].get_node_number(), 1));
@@ -298,16 +354,22 @@ namespace gr {
       _first_time = false;
     }
 
-    void direction_finder_impl::start_tracking(int lost) {
+    /*void direction_finder_impl::start_tracking(int lost) {
       std::cout << "The node other is possibly moving !!" << '\n';
       pmt::pmt_t change_direction = pmt::cons(pmt::from_long(lost), pmt::from_double(_difference));
       message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
-    }
+    }*/
 
     void direction_finder_impl::start_tracking(int lost, double difference) {
-      std::cout << "The node other is possibly moving !!" << '\n';
-      pmt::pmt_t change_direction = pmt::cons(pmt::from_long(lost), pmt::from_double(difference));
-      message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
+      if (_timeout_value == 0) {
+        if (_develop_mode) {
+          std::cout << "Tracking is disabled ! " << '\n';
+        }
+      } else {
+        std::cout << "The other node "<< lost << " is possibly moving !!" << '\n';
+        pmt::pmt_t change_direction = pmt::cons(pmt::from_long(lost), pmt::from_double(difference));
+        message_port_pub(pmt::mp("movement_tracker_out"), change_direction);
+      }
     }
 
     void direction_finder_impl::calculate(){

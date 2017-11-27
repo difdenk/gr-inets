@@ -43,7 +43,7 @@ namespace gr {
       double _tracking_angle1;
       double _tracking_angle2;
       double _difference;
-      double _baseline;
+      //double _baseline;
       double _phase_1;
       double _phase_2;
       double _phase_3;
@@ -53,9 +53,10 @@ namespace gr {
       int _max;
       int _indicator;
       int _count;
-      int _node_number;
+      int _guilty;
       std::vector<int> _nodes;
       std::vector<double> _angles;
+      std::vector<double> _baseline;
       pmt::pmt_t _phase_values;
       pmt::pmt_t _phase_key1;
       pmt::pmt_t _phase_key2;

@@ -24,6 +24,9 @@
 #include <inets/direction_finder.h>
 #include <vector>
 #include <algorithm>
+#include <ctime>
+#include <iostream>
+#include <cstdio>
 
 namespace gr {
   namespace inets {
@@ -31,21 +34,6 @@ namespace gr {
     class direction_finder_impl : public direction_finder
     {
      private:
-       int _develop_mode;
-       int _destination_address;
-       int _virgin;
-       int _counter;
-       int _lost;
-       double _update_interval;
-       double _timeout_value;
-       bool _timeout;
-       double _difference;
-       double _snr;
-       bool _sweep_done;
-       bool _ack_received;
-       bool _first_time;
-       bool _search_mode;
-       bool _beacon_reply_received;
        class radio {
          private:
            int node_number;
@@ -64,16 +52,46 @@ namespace gr {
            void set_node_number(int number);
            bool check_node_number(int address);
            int get_node_number();
+           int ack_size();
        };
+       class timer {
+        private:
+         double duration;
+         double start;
+         int node;
+       public:
+         timer();
+         ~timer();
+         int start_timer(double duration);
+         void reset_timer();
+         void pause_timer();
+       };
+       int _develop_mode;
+       int _destination_address;
+       int _virgin;
+       int _counter;
+       int _lost;
+       double _update_interval;
+       double _timeout_value;
+       bool _timeout;
+       //double _difference;
+       double _snr;
+       bool _sweep_done;
+       bool _ack_received;
+       bool _first_time;
+       bool _search_mode;
+       bool _indicator;
        pmt::pmt_t _best_direction;
        std::vector<double> _best_direction_each;
        std::vector<double> _average_snr_each;
        std::set<int> _nodes;
+       std::vector<timer> _timer;
        std::vector<radio> _table;
        std::vector<radio> _table_ack;
        std::vector<int> _node_addresses;
        std::vector<int> _node_addresses_ack;
        std::vector<double> _snr_values;
+       std::vector<double> _difference;
        std::vector<double> _snr_values_ack;
        std::vector<double> _angle_values;
        std::vector<double>::iterator _biggest;

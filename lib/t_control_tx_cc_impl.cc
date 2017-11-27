@@ -311,7 +311,7 @@ namespace gr {
       double arg = imag(temp);
       std::complex<double> temp1(magn, arg);
       std::complex<double> weight;
-      double sweep_speed = _sweep_mode;
+      double sweep_speed = (5 *_sweep_mode) / 8; // 1 degree per sec
       double calibration1 = 0.257; // 81 degrees phase offset // second calibration : 0.28, -0.025, 0.075 third: 0.257, -0.0175, 0.075
       double calibration2 = -0.0175; // 20 degrees offset //
       double calibration3 = 0.075; // 42 degrees phase offset

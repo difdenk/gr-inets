@@ -24,6 +24,7 @@
 
 #include <gnuradio/io_signature.h>
 #include "direction_mapper_impl.h"
+#include <math.h>
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #define _PI 3.14159265359
@@ -49,8 +50,8 @@ namespace gr {
               _block_id(block_id),
               _indicator(0),
               _count(0),
-              _baseline(0),
-              _trial_angle(0),
+              //_baseline(0),
+              //_trial_angle(0.01),
               _max(0),
               _phase_1(phase_1*_PI/180),
               _phase_2(phase_2*_PI/180),
@@ -85,10 +86,10 @@ namespace gr {
     void direction_mapper_impl::check_destination(pmt::pmt_t frame_in) {
       if (_search_mode) {
         _max++;
-        if (_max < 10) {
+        if (_max < 5) {
           _trial_angle = _tracking_angle1;
         }
-        else if(_max  >= 10 && _max < 20 ) {
+        else if(_max  >= 5 && _max < 10 ) {
           _trial_angle = _tracking_angle2;
         }
         else {
@@ -106,9 +107,10 @@ namespace gr {
           }
           pmt::pmt_t destination = pmt::dict_ref(frame_in, pmt::string_to_symbol("destination_address"), not_found);
           int destination_address = pmt::to_long(destination);
+          std::cout << "incoming frame address: " << destination_address << '\n';
           if (_nodes.size() != 0) {
             _index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), destination_address));
-            if (_search_mode) {
+            if (_search_mode && (_guilty == destination_address)) {
               //std::cout << "trial: " << _trial_angle << '\n';
               pmt::pmt_t phase_value1 = pmt::from_double(_trial_angle*_PI/180);
               pmt::pmt_t phase_value2 = pmt::from_double(_trial_angle*_PI/180);
@@ -118,7 +120,7 @@ namespace gr {
               _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
               _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
               _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-              std::cout << "Angle mapper sends to t_control:  " << _trial_angle <<'\n';
+              std::cout << "Angle mapper sends to t_control for a change:  " << _trial_angle <<'\n';
               message_port_pub(pmt::mp("phase_out"), _phase_values);
             }
             else {
@@ -134,127 +136,65 @@ namespace gr {
               std::cout << "Angle mapper sends to t_control:  " << corresponding_angle <<'\n';
               message_port_pub(pmt::mp("phase_out"), _phase_values);
             }
-
-            //pmt::print(_phase_values);
           }
         }
-        /*if (pmt::is_dict(frame_in) && ((pmt::to_long(pmt::dict_ref(frame_in, pmt::string_to_symbol("frame_type"), not_found)) == 3))) {
-          if (_develop_mode) {
-            //std::cout << "frame_in is a dict" << '\n';
-          };
-          if (_nodes.size() != 0) {
-            if (_side) {
-              pmt::pmt_t phase_value1 = pmt::from_double(_tracking_angle1*_PI/180);
-              pmt::pmt_t phase_value2 = pmt::from_double(_tracking_angle1*_PI/180);
-              pmt::pmt_t phase_value3 = pmt::from_double(_tracking_angle1*_PI/180);
-              pmt::pmt_t phase_value4 = pmt::from_double(_tracking_angle1*_PI/180);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-              std::cout << "_tracking_angle1: " << _tracking_angle1 <<'\n';
-              message_port_pub(pmt::mp("phase_out"), _phase_values);
-              //pmt::print(_phase_values);
-              _side = false;
-            } else {
-              pmt::pmt_t phase_value1 = pmt::from_double(_tracking_angle2*_PI/180);
-              pmt::pmt_t phase_value2 = pmt::from_double(_tracking_angle2*_PI/180);
-              pmt::pmt_t phase_value3 = pmt::from_double(_tracking_angle2*_PI/180);
-              pmt::pmt_t phase_value4 = pmt::from_double(_tracking_angle2*_PI/180);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
-              _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-              std::cout << "_tracking_angle2: " << _tracking_angle2 <<'\n';
-              message_port_pub(pmt::mp("phase_out"), _phase_values);
-              //pmt::print(_phase_values);
-              _side = true;
-            }
-          }
-        }*/
       }
     }
 
     void direction_mapper_impl::track_movement(pmt::pmt_t track) {
+      if (_baseline.size() == 0) {
+        std::cout << "Default angles of the nodes are initialized !" << '\n';
+        for (size_t i = 0; i < _angles.size(); i++) {
+          _baseline.push_back(_angles[i]);
+        }
+      }
+      double radiation_pattern_function;
+      double variance_a;
+      bool one_or_zero = rand() % 2;
+      if (one_or_zero) {
+        variance_a = rand() % 3;
+      } else {
+        variance_a = -(rand() % 3);
+      }
       _search_mode = true;
       if (pmt::is_dict(track)) {
         std::cout << "Node is getting away !!" << '\n';
         //_phase_values = pmt::make_dict();
-        int node_number = pmt::to_long(pmt::car(track));
+        _guilty = pmt::to_long(pmt::car(track));
+        std::cout << "Node number of tracking: " << _guilty << '\n';
         double difference = pmt::to_double(pmt::cdr(track));
-        if (difference = 30) {
-          _timeout = true;
-        }
-        _index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), node_number));
+        radiation_pattern_function = (10*sqrt((0.3669 + (3*difference)/5)))/3 + 1.1;
+        std::cout << "angle change: " << radiation_pattern_function << '\n';
+        //if (difference = 30) {
+        //  _timeout = true;
+        //}
+        _index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), _guilty));
         //std::cout << "index: " << index << '\n';
         double corresponding_angle = _angles[_index];
-        if ( _baseline == 0 || !_search_mode) {
-          //std::cout << "Baseline has been reset !!" << '\n';
+        /*if ( _baseline == 0 || !_search_mode) {
+          std::cout << "Baseline is initialized !!" << '\n';
           _baseline = _angles[_index];
-        }
-        //std::cout << "corre: " << corresponding_angle <<'\n';
+        }*/
+        std::cout << "baseline: " << _baseline[_index] <<'\n';
         if(_search_mode) {
-          if (difference < 6) {
-              std::cout << "+ 4" << '\n';
-              _tracking_angle1 = _baseline + 6;
+          if (true) {
+              _tracking_angle1 = _baseline[_index] + radiation_pattern_function + variance_a;
               //_angles[index] = _tracking_angle1;
               std::cout << "tracking angle1: " << _tracking_angle1 << '\n';
-              std::cout << "- 4" << '\n';
-              _tracking_angle2 = _baseline - 6;
+              _tracking_angle2 = _baseline[_index] - radiation_pattern_function + variance_a;
               //_angles[index] = _tracking_angle2;
               std::cout << "tracking angle2: " << _tracking_angle2 << '\n';
-            /*pmt::pmt_t phase_value1 = pmt::from_double((corresponding_angle + 3)*_PI/180);
-            pmt::pmt_t phase_value2 = pmt::from_double((corresponding_angle + 3)*_PI/180);
-            pmt::pmt_t phase_value3 = pmt::from_double((corresponding_angle + 3)*_PI/180);
-            pmt::pmt_t phase_value4 = pmt::from_double((corresponding_angle + 3)*_PI/180);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-            message_port_pub(pmt::mp("phase_out"), _phase_values);
-            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-            _phase_values = pmt::make_dict();
-            phase_value1 = pmt::from_double((corresponding_angle - 3)*_PI/180);
-            phase_value2 = pmt::from_double((corresponding_angle - 3)*_PI/180);
-            phase_value3 = pmt::from_double((corresponding_angle - 3)*_PI/180);
-            phase_value4 = pmt::from_double((corresponding_angle - 3)*_PI/180);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-            message_port_pub(pmt::mp("phase_out"), _phase_values);*/
-          } else {
-              std::cout << "+ 9" << '\n';
-              _tracking_angle1 = _baseline + 9;
+          } /*else {
+              std::cout << "TIMEOUT !" << '\n';
+              _tracking_angle1 = _baseline + 9 + variance_a;
               std::cout << "tracking angle1: " << _tracking_angle1 << '\n';
               //_angles[index] = _tracking_angle1;
               //std::cout << "newish angle: " << _angles[index] << '\n';
-              std::cout << "- 9" << '\n';
-              _tracking_angle2 = _baseline - 9;
+
+              _tracking_angle2 = _baseline - 9 + variance_a;
               std::cout << "tracking angle2: " << _tracking_angle2 << '\n';
               //_angles[index] = _tracking_angle2;
-            //  std::cout << "newish angle: " << _angles[index] << '\n';
-            /*pmt::pmt_t phase_value1 = pmt::from_double((corresponding_angle + 6)*_PI/180);
-            pmt::pmt_t phase_value2 = pmt::from_double((corresponding_angle + 6)*_PI/180);
-            pmt::pmt_t phase_value3 = pmt::from_double((corresponding_angle + 6)*_PI/180);
-            pmt::pmt_t phase_value4 = pmt::from_double((corresponding_angle + 6)*_PI/180);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-            message_port_pub(pmt::mp("phase_out"), _phase_values);
-            boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-            _phase_values = pmt::make_dict();
-            phase_value1 = pmt::from_double((corresponding_angle - 6)*_PI/180);
-            phase_value2 = pmt::from_double((corresponding_angle - 6)*_PI/180);
-            phase_value3 = pmt::from_double((corresponding_angle - 6)*_PI/180);
-            phase_value4 = pmt::from_double((corresponding_angle - 6)*_PI/180);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key1, phase_value1);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key2, phase_value2);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key3, phase_value3);
-            _phase_values = pmt::dict_add(_phase_values, _phase_key4, phase_value4);
-            message_port_pub(pmt::mp("phase_out"), _phase_values);*/
-          }
+          }*/
         } else {
           std::cout << "Movement is not dict !" << '\n';
         }
@@ -282,6 +222,7 @@ namespace gr {
           //pmt::print(_phase_values);
           if (_develop_mode) {
             std::cout << "Best direction sent" << '\n';
+            std::cout << "angles" << _angles[0] << '\n';
           }
           _count ++;
         }
@@ -298,11 +239,16 @@ namespace gr {
         }
       }
       else if(pmt::is_complex(trigger)) {
-        std::cout << "New angle for a destination arrived" << '\n';
+        std::complex<double> node = pmt::to_complex(trigger);
+        int destination_address = std::real(node);
+        std::cout << "New angle for destination " << destination_address << " arrived!!" << '\n';
+        _index = std::distance(_nodes.begin(), std::find(_nodes.begin(), _nodes.end(), destination_address));
         _search_mode = false;
+        std::cout << "trrr " << _trial_angle << '\n';
         double new_angle = _trial_angle;
         _angles[_index] = new_angle;
-        _baseline = _angles[_index];
+        _baseline[_index] = _angles[_index];
+        _timeout = false;
         std::cout << "Baseline has been reset !" << '\n';
         std::cout << "New angle: " << _angles[_index] <<'\n';
         pmt::pmt_t phase_value1 = pmt::from_double(new_angle*_PI/180);
