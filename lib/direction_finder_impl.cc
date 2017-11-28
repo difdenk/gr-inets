@@ -215,24 +215,25 @@ namespace gr {
     }
 
     void direction_finder_impl::timeout(pmt::pmt_t expired) {
-      int guilty;
       if (_nodes.size() > 1) {
         std::vector<int>::iterator it = _node_addresses_ack.end() - 1;
         int last_ack_received_neighbour = *it;
-        std::cout << "the value of *it: " << *it << '\n';
+        //std::cout << "the value of *it: " << *it << '\n';
         std::set<int> nodes = _nodes; //temp storage
         nodes.erase(last_ack_received_neighbour);
         start_tracking(*nodes.begin(), 12);
-        int guilty = *nodes.begin();
+        _guilty = *nodes.begin();
+        //std::cout << "/* message */" << *nodes.begin() << '\n';
       }
       else {
         start_tracking(*_nodes.begin(), 12);
-        int guilty = *_nodes.begin();
+        _guilty = *_nodes.begin();
       }
       std::cout << "Timeout !!! No ACK received for 3 seconds !!" << '\n';
-      std::cout << "Connection lost with node number " << guilty << '\n';
+      std::cout << "Connection lost with node number " << _guilty << '\n';
       _search_mode = true;
       _timeout = true;
+      std::cout << "this is the real guilty:"  << _guilty <<'\n';
     }
 
     void direction_finder_impl::generate_ack_table(pmt::pmt_t ack_in) {
@@ -241,12 +242,12 @@ namespace gr {
       //int timeout_value = _timeout_value;
       pmt::pmt_t not_found = pmt::from_long(7);
       int received_frame_address = pmt::to_long(pmt::dict_ref(ack_in, pmt::string_to_symbol("source_address"), not_found));
-      if (_timer.size() == 0) {
+      /*if (_timer.size() == 0) {
         for (size_t i = 0; i < _nodes.size(); i++) {
           timer newTimer;
           _timer.push_back(newTimer);
         }
-      }
+      }*/
       _nodes.insert(received_frame_address);
       _snr = pmt::to_double(pmt::dict_ref(ack_in, pmt::string_to_symbol("reserved_field_I"), not_found));
       if (_develop_mode) {
@@ -256,13 +257,13 @@ namespace gr {
       _node_addresses_ack.push_back(received_frame_address);
       _snr_values_ack.push_back(_snr);
       if (_snr_values_ack.size() > 2 * update_interval) {
-        sort();
+        sort(received_frame_address);
         _snr_values_ack.erase(_snr_values_ack.begin());
         _node_addresses_ack.erase(_node_addresses_ack.begin());
       }
     }
 
-    void direction_finder_impl::sort() {
+    void direction_finder_impl::sort(int received_frame) {
       int timer = rand()%40;
       int initial_size = _nodes.size();
       //std::cout << "initial_size: " << initial_size << '\n';
@@ -309,7 +310,8 @@ namespace gr {
           _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), _table_ack[i].ack_size());
           //double old_avrg = _table_ack[i].get_moving_average((_table_ack[i].get_last_snr()) - 10, _update_interval / 2);
           std::cout << "Default Average for node number "<< _table_ack[i].get_node_number() << " : " << _average_snr_each[i] << '\n';
-        }if (_first_time == false && !_search_mode && timer == 7) {
+        }
+        if (_first_time == false && !_search_mode && timer == 7) {
           _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), 20);
           //double old_avrg = _table_ack[i].get_moving_average((_table_ack[i].get_last_snr()) - 10, _update_interval / 2);
           std::cout << "Default Average for node number "<< _table_ack[i].get_node_number() << " : " << _average_snr_each[i] << '\n';
@@ -336,14 +338,17 @@ namespace gr {
         if (_difference[i] < -2 && !_search_mode) {
           _average_snr_each[i] = _snr;
         }
-        if (_timeout || (_search_mode && (_difference[i] < 2))) {
-          //_difference = 0;
-          std::cout << "Tracking... " << '\n';
-          sweep_done(pmt::pmt_from_complex(_table_ack[i].get_node_number(), 1));
-          _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), 1);
-          std::cout << "Antennas are Set !!" << '\n';
+        std::cout << "missing node: " << _guilty << '\n';
+        if ((received_frame == _guilty) && (_timeout || (_search_mode && (_difference[i] < 5)))) {
           _search_mode = false;
           _timeout = false;
+          //_difference = 0;
+          std::cout << "Tracking... " << '\n';
+          sweep_done(pmt::pmt_from_complex(_guilty, 1));
+          std::cout << "should be always 2: " << received_frame << '\n';
+          _average_snr_each[i] = _table_ack[i].get_moving_average(_table_ack[i].get_last_snr(), 1);
+          std::cout << "Antennas are Set !!" << '\n';
+
 
         }
         /*else if(_search_mode && !_beacon_reply_received) {

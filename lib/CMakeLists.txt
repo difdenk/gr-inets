@@ -102,7 +102,8 @@ list(APPEND inets_sources
     direction_mapper_impl.cc
     bits_to_msg_impl.cc
     PRBS_Gen_impl.cc
-    direction_finder_impl.cc )
+    direction_finder_impl.cc
+    source_address_check_impl.cc )
 
 set(inets_sources "${inets_sources}" PARENT_SCOPE)
 if(NOT inets_sources)

@@ -104,5 +104,6 @@ install(FILES
     inets_direction_mapper.xml
     inets_bits_to_msg.xml
     inets_PRBS_Gen.xml
-    inets_direction_finder.xml DESTINATION share/gnuradio/grc/blocks
+    inets_direction_finder.xml
+    inets_source_address_check.xml DESTINATION share/gnuradio/grc/blocks
 )

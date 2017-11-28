@@ -86,10 +86,10 @@ namespace gr {
     void direction_mapper_impl::check_destination(pmt::pmt_t frame_in) {
       if (_search_mode) {
         _max++;
-        if (_max < 5) {
+        if (_max < 4) {
           _trial_angle = _tracking_angle1;
         }
-        else if(_max  >= 5 && _max < 10 ) {
+        else if(_max  >= 4 && _max < 8 ) {
           _trial_angle = _tracking_angle2;
         }
         else {
@@ -175,6 +175,7 @@ namespace gr {
           std::cout << "Baseline is initialized !!" << '\n';
           _baseline = _angles[_index];
         }*/
+        std::cout << "this should be same as Baseline: " << _angles[_index] << '\n';
         std::cout << "baseline: " << _baseline[_index] <<'\n';
         if(_search_mode) {
           if (true) {

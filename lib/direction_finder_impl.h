@@ -71,6 +71,7 @@ namespace gr {
        int _virgin;
        int _counter;
        int _lost;
+       int _guilty;
        double _update_interval;
        double _timeout_value;
        bool _timeout;
@@ -104,7 +105,7 @@ namespace gr {
       void generate_node_table(pmt::pmt_t beacon_reply_in);
       void generate_ack_table(pmt::pmt_t ack_in);
       void calculate();
-      void sort();
+      void sort(int received_frame);
       void start_tracking(int lost);
       void start_tracking(int lost, double difference);
       void timeout(pmt::pmt_t expired);

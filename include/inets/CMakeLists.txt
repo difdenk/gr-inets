@@ -99,6 +99,7 @@ install(FILES
     direction_mapper.h
     bits_to_msg.h
     PRBS_Gen.h
-    direction_finder.h DESTINATION include/inets
+    direction_finder.h
+    source_address_check.h DESTINATION include/inets
 
 )
